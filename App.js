@@ -2,11 +2,16 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './src/components/HomeScreen';
-import SecondScreen from './src/components/SecondScreen';
-import ThirdScreen from './src/components/ThirdScreen';
-import FourthScreen from './src/components/FourthScreen';
-import FifthScreen from './src/components/FifthScreen';
+import MaquinaCalentamientoScreen from './src/components/MaquinaCalentamiento';
+import MaquinaFlexionesScreen from './src/components/MaquinaFlexiones';
+import MaquinaPlanchasScreen from './src/components/MaquinaPlanchas';
+import MaquinaSecadorasScreen from './src/components/MaquinaSecadoras';
+import MaquinaSecadorasFlexionesScreen from './src/components/MaquinaSecadoraFlexiones';
+import MaquinaSecadorasRotacionesScreen from './src/components/MaquinaSecadorasRotaciones';
 import ConfigScreen from './src/components/ConfigScreen';
+import HelpFlexionesScreen from './src/components/HelpFlexionesScreen';
+import HelpCalentamientoScreen from './src/components/HelpCalentamientoScreen';
+import HelpPlanchasScreen from './src/components/HelpPlanchasScreen';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Iconos de configuración
 
@@ -26,11 +31,16 @@ const App = () => {
         })}>
         
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Second" component={SecondScreen} />
-        <Stack.Screen name="Third" component={ThirdScreen} />
-        <Stack.Screen name="Fourth" component={FourthScreen} />
-        <Stack.Screen name="Fifth" component={FifthScreen} />
+        <Stack.Screen name="Maquina calentamiento" component={MaquinaCalentamientoScreen} />
+        <Stack.Screen name="Maquina Flexiones" component={MaquinaFlexionesScreen} />
+        <Stack.Screen name="Maquina Planchas" component={MaquinaPlanchasScreen} />
+        <Stack.Screen name="Maquina Secadoras" component={MaquinaSecadorasScreen} />
+        <Stack.Screen name="Maquina Secadoras Flexiones" component={MaquinaSecadorasFlexionesScreen} />
+        <Stack.Screen name="Maquina Secadoras Rotaciones" component={MaquinaSecadorasRotacionesScreen} />
         <Stack.Screen name="Con" component={ConfigScreen} />
+        <Stack.Screen name="Ayuda Maquina Flexiones" component={HelpFlexionesScreen} />
+        <Stack.Screen name="Ayuda Maquina Calentamiento" component={HelpCalentamientoScreen} />
+        <Stack.Screen name="Ayuda Maquina Planchas" component={HelpPlanchasScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,34 +1,45 @@
 {
   "expo": {
-    "name": "itrkspp",
+    "name": "intertek automation",
     "slug": "itrkspp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logoRobotOk.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logoRobot.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/logoRobot.png",
+        "backgroundColor": "#000000"
       },
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "useNextNotificationsApi": true,
       "package": "Y.APK"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logoRobot.png"
     },
     "extra": {
+      "debuggerHost": "192.168.0.101:5000",
       "eas": {
         "projectId": "0d2a3801-2daa-46df-bf89-6ac0cbe7d939"
       }
-    }
+    },
+    "plugins": [
+      [
+        "expo-build-properties", { "android": { "usesCleartextTraffic": true } }
+      ]
+    ]
   }
 }

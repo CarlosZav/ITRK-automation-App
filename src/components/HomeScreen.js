@@ -16,24 +16,24 @@ const HomeScreen = ({ navigation }) => {
       {/* Menu Options */}
       <View style={styles.menuContainer}>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Second')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina calentamiento')}>
           <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
-          <Text style={styles.menuText}>MAQUINA 1</Text>
+          <Text style={styles.menuText}>Maquina Calenta...</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Third')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Flexiones')}>
           <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
-          <Text style={styles.menuText}>MAQUINA 2</Text>
+          <Text style={styles.menuText}>Maquina Flexiones</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Fourth')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Planchas')}>
           <Image style={styles.icon} source={require('../../assets/Maquina3.png')} />
-          <Text style={styles.menuText}>MAQUINA 3</Text>
+          <Text style={styles.menuText}>Maquina Planchas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Fifth')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras')}>
           <Image style={styles.icon} source={require('../../assets/Maquina4.png')} />
-          <Text style={styles.menuText}>MAQUINA 4</Text>
+          <Text style={styles.menuText}>Maquina Secadoras</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
  /* image: {
     width: 200,

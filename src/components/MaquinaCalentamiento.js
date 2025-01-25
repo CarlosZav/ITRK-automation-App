@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image, Alert , TextInput} from 'react-native';
+import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
- 
-const FifthScreen = ({ navigation }) => {
- 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { io } from "socket.io-client";
+import Icon from 'react-native-vector-icons/Ionicons';
+
+const URL = "http://192.168.0.101:5000";  // IPG CON SERVIDOR INTERTEK 192.168.0.101
+//const ServerURL = "192.168.137.19";
+
+const MaquinaCalentamientoScreen = ({ navigation }) => {
+  //Picker 1
   const [day, setDay] = useState('00');
   const [hour, setHour] = useState('00');
   const [minute, setMinute] = useState('00');
   const [second, setSecond] = useState('00');
- 
+  //Picker 2
   const [day2, setDay2] = useState('00');
   const [hour2, setHour2] = useState('00');
   const [minute2, setMinute2] = useState('00');
   const [second2, setSecond2] = useState('00');
-
+  //Label
   const [ciclos, setCiclos] = useState('1');
-
+  //Clock
   const [elapsedTime, setElapsedTime] = useState(0); // in seconds
- 
+  //Comunicación WS Envío
+  const [socket, setSocket] = useState(null);
+  const [message, setMessage] = useState("");
+  const [ipAddress, setIpAddress] = useState('');
+
+  //Timer
   useEffect(() => {
     let timer;
     if (elapsedTime > 0) {
@@ -29,51 +40,91 @@ const FifthScreen = ({ navigation }) => {
     return () => clearInterval(timer);
   }, [elapsedTime]);
 
-  const esp8266IP = "http://192.168.95.205";  // Cambia esto con la IP de tu ESP8266
- 
-  // Función para enviar datos a la ESP8266
-  const enviarDatos = async () => {
-    try {
-      const datos = {
-        encendido: `${day}:${hour}:${minute}:${second}`,
-        apagado: `${day2}:${hour2}:${minute2}:${second2}`,
-        ciclos: ciclos,
-      };
- 
-      const response = await fetch(`${esp8266IP}/enviar`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(datos),
-      });
- 
-      const result = await response.text();
-      Alert.alert('Respuesta de ESP8266', result);
-      // Start the timer
-      setElapsedTime(1); // Start counting from 1 second
-    } catch (error) {
-      console.error("Error al enviar los datos:", error);
-      Alert.alert('Error', 'No se pudieron enviar los datos.');
-    }
-  };
- 
-  // Función para recibir datos de la ESP8266
-  const recibirDatos = async () => {
-    try {
-      const response = await fetch(`${esp8266IP}/recibir`, {
-        method: 'GET',
-      });
- 
-      const result = await response.text();
-      Alert.alert('Datos recibidos de ESP8266', result);
-    } catch (error) {
-      console.error("Error al recibir los datos:", error);
-      Alert.alert('Error', 'No se pudieron recibir los datos.');
-    }
+  // Load the IP address from AsyncStorage
+  useEffect(() => {
+    const loadIpAddress = async () => {
+      try {
+        const savedIpAddress = await AsyncStorage.getItem('ServerURL');
+        if (savedIpAddress) {
+          setIpAddress(savedIpAddress);
+          initializeSocket(savedIpAddress);
+        }
+      } catch (error) {
+        console.error("Error loading IP address:", error);
+      }
+    };
+
+    loadIpAddress();
+  }, []);
+
+  const initializeSocket = (ip) => {
+    const serverURL  = `http://${ip}:5000`;
+    const newSocket = io(URL, {
+      transports: ['websocket'],
+    });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to Python server', serverURL);
+      Alert.alert('Connection', 'Connected to Python server.\nIp: ' + serverURL  + '.');
+    });
+
+    newSocket.on('message', (msg) => {
+      console.log('Message from server:', msg);
+      setMessage(msg);
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
+
+    setSocket(newSocket);
   };
 
-  // Function to reset values
+  const sendMessage = () => {
+    //Milisengundos en ON y OFF
+    let mili_ON = (day * 24 * 60 * 60 * 1000) + (hour * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000); 
+    let mili_OFF = (day2 * 24 * 60 * 60 * 1000) + (hour2 * 60 * 60 * 1000) + (minute2 * 60 * 1000) + (second2 * 1000); 
+
+    print('tiempo on : ', mili_ON);
+    print('tiempo off : ', mili_OFF);
+
+    const datos = {
+      seteo_ciclos: ciclos,
+      seteo_tiempo_encendido: mili_ON,
+      seteo_tiempo_apagado: mili_OFF,
+    };
+    socket.emit('datosfromApp', datos);
+  };
+
+  const recibirDatos = () => {
+    socket.emit('recibirDatosServer');
+    socket.on('datosServidor', (data) => {
+      // Validar que data no sea nulo, indefinido ni vacío
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+      console.log('Datos recibidos:', data);
+
+      let sensor_valueJS = data.sensor_value;
+      let conteo_ciclosJS = data.conteo_ciclos;
+      let estado_ssrJS = data.estado_ssr;
+      let tiempo_transcurridoJS = data.tiempo_transcurrido;
+
+      console.log('valor de sensor: ', sensor_valueJS);
+      console.log('conteo ciclos: ', conteo_ciclosJS);
+      console.log('estado ssr: ', estado_ssrJS);
+      console.log('tiempo transcurrido: ', tiempo_transcurridoJS);
+
+      Alert.alert('Datos recibidos', JSON.stringify(data, null, 2));
+      } else {
+        Alert.alert('Advertencia', 'No se recibieron datos válidos del servidor.');
+      }
+    });
+    
+    socket.on('error', (mensaje) => {
+      Alert.alert('Error', mensaje);
+    });
+  };  
+
+  // Función para resetear valores
   const resetValues = () => {
     setDay('00');
     setHour('00');
@@ -95,9 +146,17 @@ const FifthScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+
+      <TouchableOpacity
+              style={styles.helpIcon}
+              onPress={() => navigation.navigate('Ayuda Maquina Calentamiento')} // Navegar a la pantalla de ayuda
+            >
+              <Icon name="help-circle-outline" size={30} color="#FFD700" />
+            </TouchableOpacity>
+
       <View style={styles.image_container}>
         <Image
-          source={require('../../assets/Maquina4.png')}
+          source={require('../../assets/Maquina.png')}
           style={styles.image}
         />
       </View>
@@ -265,7 +324,7 @@ const FifthScreen = ({ navigation }) => {
       
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="Enviar Datos" color="#FFD700" onPress={enviarDatos} />
+          <Button title="Enviar Datos" color="#FFD700" onPress={sendMessage} />
         </View>
         <View style={styles.button}>
           <Button title="Recibir Datos" color="#FFD700" onPress={recibirDatos} />
@@ -288,7 +347,7 @@ const styles = StyleSheet.create({
     flex: 1, // Take the full height and width
     justifyContent: 'center', // Center vertically
     alignItems: 'center', // Center horizontally
-    backgroundColor: '#fff', // Optional background color
+    //backgroundColor: '#fff', // Optional background color
   },
   image: {// Take the full height and width
     width: 100, // Set your desired width
@@ -329,6 +388,11 @@ const styles = StyleSheet.create({
     borderColor: '#FFD700', // Amarillo
     borderRadius: 10,
   },
+  helpIcon: {
+    position: 'absolute',
+    top: 10, // Ajusta según tu diseño
+    right: 10, // Ajusta según tu diseño
+  },
   pickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -367,4 +431,4 @@ const styles = StyleSheet.create({
   },
 });
  
-export default FifthScreen;
+export default MaquinaCalentamientoScreen;

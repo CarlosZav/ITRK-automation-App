@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image, Alert , TextInput} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
 import { io } from "socket.io-client";
+import Icon from 'react-native-vector-icons/Ionicons';
+import { ScrollView } from 'react-native-gesture-handler';
 
-const URL = "http://192.168.137.90:5000";  // Cambia esto con la IP de tu Raspberry
-//const ServerURL = "192.168.137.19";
- 
-const ThirdScreen = ({ navigation }) => {
- 
+const SERVER_URL = 'http://192.168.0.101:5000';
+
+const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
+
   const [ciclosF, setCiclos] = useState('');
   const [angulo1, setAngulo1] = useState('');
-  const [angulo2, setAngulo2] = useState(''); 
+  const [angulo2, setAngulo2] = useState('');
+  const [velocidadFlexion, setVelocidadFlexion] = useState('');  
 
   const [elapsedTime, setElapsedTime] = useState(0); // in seconds
 
@@ -28,36 +28,19 @@ const ThirdScreen = ({ navigation }) => {
         setElapsedTime(prev => prev + 1);
       }, 1000);
     }
-  
+
     return () => clearInterval(timer);
   }, [elapsedTime]);
 
-  // Load the IP address from AsyncStorage
   useEffect(() => {
-    const loadIpAddress = async () => {
-      try {
-        const savedIpAddress = await AsyncStorage.getItem('ServerURL');
-        if (savedIpAddress) {
-          setIpAddress(savedIpAddress);
-          initializeSocket(savedIpAddress);
-        }
-      } catch (error) {
-        console.error("Error loading IP address:", error);
-      }
-    };
-
-    loadIpAddress();
-  }, []);
-
-  const initializeSocket = (ip) => {
-    const serverURL  = `http://${ip}:5000`;
-    const newSocket = io(URL, {
+    // Inicializa la conexión con el servidor
+    const newSocket = io(SERVER_URL, {
       transports: ['websocket'],
     });
 
     newSocket.on('connect', () => {
-      console.log('Connected to Python server', serverURL);
-      Alert.alert('Connection', 'Connected to Python server.\nIp: ' + serverURL  + '.');
+      console.log('Connected to Python server', SERVER_URL);
+      Alert.alert('Connection', 'Connected to Python server.\nIp: ' + SERVER_URL  + '.');
     });
 
     newSocket.on('message', (msg) => {
@@ -70,7 +53,12 @@ const ThirdScreen = ({ navigation }) => {
     });
 
     setSocket(newSocket);
-  };
+
+    // Limpia la conexión al desmontar el componente
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
 
   // Mandar datos de seteo de ciclos al presionar el boton iniciar prueba
   const sendMessage = () => {
@@ -90,7 +78,7 @@ const ThirdScreen = ({ navigation }) => {
     socket.emit('datosfromFlexiones_pausar', datos);
   };
 
-  const sendMessage_reiniciar = () => {
+  const sendMessage_reanudar = () => {
     const datos = {
       pausarF: 'NO',
     };
@@ -98,30 +86,35 @@ const ThirdScreen = ({ navigation }) => {
   };
 
   const recibirDatos = () => {
-    socket.emit('recibirDatosServerFlexiones');
+    // Eliminar cualquier listener existente para evitar duplicados
+    socket.off('datosServidorFlexiones');
+  
+    // Registrar un nuevo listener
     socket.on('datosServidorFlexiones', (data) => {
       // Validar que data no sea nulo, indefinido ni vacío
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      console.log('Datos recibidos:', data);
-
-      let conteo_ciclosFlex = data.conteo_ciclosF;
-      let estado_pruebaFlex = data.estado_pruebaF;
-      let tiempo_transcurridoFlex = (data.tiempo_transcurridoF)/(1000*60);
-
-      console.log('Ciclos transcurridos: ', conteo_ciclosFlex);
-      console.log('Estado de la prueba: ', estado_pruebaFlex);
-      console.log('tiempo transcurrido (minutos): ', tiempo_transcurridoFlex);
-
-      Alert.alert('Datos recibidos', JSON.stringify(data, null, 2));
+        console.log('Datos recibidos:', data);
+  
+        let conteo_ciclosFlex = data.conteo_ciclosF;
+        let estado_pruebaFlex = data.estado_pruebaF;
+        let tiempo_transcurridoFlex = (data.tiempo_transcurridoF) / 60;
+  
+        console.log('Ciclos transcurridos: ', conteo_ciclosFlex);
+        console.log('Estado de la prueba: ', estado_pruebaFlex);
+        console.log('Tiempo transcurrido (min): ', tiempo_transcurridoFlex);
+  
+        Alert.alert(
+          'Datos recibidos',
+          `Ciclos transcurridos: ${conteo_ciclosFlex}\nEstado de la prueba: ${estado_pruebaFlex}\nTiempo transcurrido (min): ${tiempo_transcurridoFlex}`
+        );
       } else {
         Alert.alert('Advertencia', 'No se recibieron datos válidos del servidor.');
       }
     });
-
-    socket.on('error', (mensaje) => {
-      Alert.alert('Error', mensaje);
-    });
-  };  
+  
+    // Emitir solicitud al servidor
+    socket.emit('recibirDatosServerFlexiones');
+  };
 
   // Función para resetear valores
   const resetValues = () => {
@@ -132,14 +125,22 @@ const ThirdScreen = ({ navigation }) => {
     // Implement your logic to pause the cycle here
     Alert.alert('Ciclo pausado');
   };
- 
+
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
+
+      <TouchableOpacity
+        style={styles.helpIcon}
+        onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
+      >
+        <Icon name="help-circle-outline" size={30} color="#FFD700" />
+      </TouchableOpacity>
+
       <Image
         source={require('../../assets/Maquina2.png')}
         style={styles.image}
       />
-            <Text style={styles.title}>CANTIDAD DE CICLOS</Text>
+            <Text style={styles.title}>CANTIDAD DE FLEXIONES</Text>
             <TextInput
               style={styles.input}
               value={ciclosF}
@@ -165,9 +166,18 @@ const ThirdScreen = ({ navigation }) => {
               keyboardType="numeric"
               placeholder="Ingrese angulo 2"
             />
+
+            <Text style={styles.title}>VELOCIDAD DE FLEXIONES</Text>
+            <TextInput
+              style={styles.input}
+              value={velocidadFlexion}
+              onChangeText={setVelocidadFlexion}
+              keyboardType="numeric"
+              placeholder="Ingrese el numero de flexiones por min."
+            />
       
       <View style={styles.buttonContainer}>
-        <Button title="Iniciar prueba" color="#FFD700" onPress={sendMessage} />
+        <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Visualizar Datos" color="#FFD700" onPress={recibirDatos} />
@@ -176,32 +186,30 @@ const ThirdScreen = ({ navigation }) => {
         <Button title="Pausar prueba" color="#FFD700" onPress={sendMessage_pausar} />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Reiniciar prueba" color="#FFD700" onPress={sendMessage_reiniciar} />
+        <Button title="Reanudar prueba" color="#FFD700" onPress={sendMessage_reanudar} />
       </View> 
-    </View>
+    </ScrollView>
   );
 };
- 
+
 const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+  },
   image: {
     width: 100,
     height: 100,
-    marginLeft: 110,
-    marginTop: -50,
-    marginBotton: 100,
-    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    marginTop: 20,
+    marginBottom: 20,
   },
- 
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  
-  selectedValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  helpIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
   title: {
     fontSize: 18,
@@ -210,15 +218,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   buttonContainer: {
-    alignItems: 'center',
     marginTop: 10,
-    borderRadius: 5,
     marginBottom: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    width: 200,
   },
-
   input: {
     height: 40,
-    borderColor: '#FFD700', // Amarillo
+    borderColor: '#FFD700',
     borderWidth: 1,
     borderRadius: 5,
     paddingHorizontal: 10,
@@ -227,5 +235,5 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
 });
- 
-export default ThirdScreen;
+
+export default MaquinaSecadorasFlexionesScreen;
