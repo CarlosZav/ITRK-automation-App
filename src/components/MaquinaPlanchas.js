@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
+import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity, ScrollView} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import Constants from "expo-constants";
 
 const SERVER_URL = __DEV__
@@ -133,13 +133,13 @@ const MaquinaPlanchasScreen = ({ navigation }) => {
   };
  
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
 
       <TouchableOpacity
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Planchas')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="help-circle-outline" size={30} color="#FFD700" />
+        <Icon name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
       <Image
@@ -185,7 +185,7 @@ const MaquinaPlanchasScreen = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <Button title="Reanudar prueba" color="#FFD700" onPress={sendMessage_reanudar} />
       </View> 
-    </View>
+    </ScrollView>
   );
 };
  
@@ -202,14 +202,12 @@ const styles = StyleSheet.create({
   helpIcon: {
     position: 'absolute',
     top: 10, // Ajusta según tu diseño
-    right: 10, // Ajusta según tu diseño
+    right: 20, // Ajusta según tu diseño
   },
- 
   container: {
-    flex: 1,
-    justifyContent: 'center',
     padding: 20,
     backgroundColor: '#fff',
+    alignItems: 'center',
   },
   
   selectedValue: {

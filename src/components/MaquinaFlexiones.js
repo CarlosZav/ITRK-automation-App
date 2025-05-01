@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
+import { View, Text, Button,StyleSheet, Image, Alert , TextInput, TouchableOpacity, ScrollView} from 'react-native';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Slider from '@react-native-community/slider';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 
-const SERVER_URL = 'http://10.224.54.107:5000';
+const SERVER_URL = 'http://10.224.55.98:5000'; // 192.168.0.101
 
 const MaquinaFlexionesScreen = ({ navigation }) => {
 
   const [ciclosF, setCiclos] = useState('');
   const [angulo1, setAngulo1] = useState('');
   const [angulo2, setAngulo2] = useState(''); 
+  const [value, setValue] = useState(0);
+  const [value1, setValue1] = useState(45); // Valor inicial del primer slider
+  const [value2, setValue2] = useState(45); // Valor inicial del segundo slider
 
   const [elapsedTime, setElapsedTime] = useState(0); // in seconds
 
@@ -62,8 +66,8 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
   const sendMessage = () => {
     const datos = {
       seteo_ciclosF: ciclosF,
-      seteo_anguloA: angulo1,
-      seteo_anguloB: angulo2,
+      seteo_anguloA: value1,
+      seteo_anguloB: value2,
       pausar : 'NO'
     };
     socket.emit('datosfromFlexiones', datos);
@@ -124,14 +128,26 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
     Alert.alert('Ciclo pausado');
   };
 
+  const incrementValue = (setValue, currentValue) => {
+    if (currentValue < 200) {
+      setValue(currentValue + 5);
+    }
+  };
+
+  const decrementValue = (setValue, currentValue) => {
+    if (currentValue > 0) {
+      setValue(currentValue - 5);
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
 
       <TouchableOpacity
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="help-circle-outline" size={30} color="#FFD700" />
+        <Icon name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
       <Image
@@ -147,7 +163,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
               placeholder="Ingrese ciclos"
             />
 
-            <Text style={styles.title}>ÁNGULO DE GIRO 1</Text>
+            {/*<Text style={styles.title}>ÁNGULO DE GIRO 1</Text>
             <TextInput
               style={styles.input}
               value={angulo1}
@@ -163,7 +179,65 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
               onChangeText={setAngulo2}
               keyboardType="numeric"
               placeholder="Ingrese angulo 2"
-            />
+            />*/}
+
+      <View style={styles.sliderContainer}>
+        <Text style={styles.title}>ÁNGULO SENTIDO HORARIO</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={200}
+          step={5}
+          value={value1}
+          onValueChange={(val) => setValue1(val)}
+          minimumTrackTintColor="#FFD700" // Color amarillo para la parte izquierda de la barra
+          maximumTrackTintColor="#DDD" // Color gris claro para la parte derecha de la barra
+          thumbTintColor="#FFD700" // Color amarillo para el control deslizante (thumb)
+        />
+        <View style={styles.buttonContainer2}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => decrementValue(setValue1, value1)}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => incrementValue(setValue1, value1)}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.sliderContainer}>
+        <Text style={styles.title}>ÁNGULO SENTIDO ANTIHORARIO</Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={0}
+          maximumValue={200}
+          step={5}
+          value={value2}
+          onValueChange={(val) => setValue2(val)}
+          minimumTrackTintColor="#FFD700" // Color amarillo para la parte izquierda de la barra
+          maximumTrackTintColor="#DDD" // Color gris claro para la parte derecha de la barra
+          thumbTintColor="#FFD700" // Color amarillo para el control deslizante (thumb)
+        />
+        <View style={styles.buttonContainer2}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => decrementValue(setValue2, value2)}
+          >
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => incrementValue(setValue2, value2)}
+          >
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
       
       <View style={styles.buttonContainer}>
         <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
@@ -177,7 +251,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
       <View style={styles.buttonContainer}>
         <Button title="Reanudar prueba" color="#FFD700" onPress={sendMessage_reanudar} />
       </View> 
-    </View>
+    </ScrollView>
   );
 };
 
@@ -185,40 +259,72 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginLeft: 110,
-    marginTop: -50,
-    marginBotton: 100,
+    marginLeft: 150,
+    marginTop: 20,
+    marginBottom: 20,
     alignItems: 'center',
   },
 
   helpIcon: {
     position: 'absolute',
     top: 10, // Ajusta según tu diseño
-    right: 10, // Ajusta según tu diseño
+    right: 20, // Ajusta según tu diseño
   },
- 
+
   container: {
     flex: 1,
-    justifyContent: 'center',
-    padding: 20,
     backgroundColor: '#fff',
   },
-  
+
+  contentContainer: {
+    justifyContent: 'center', // Mover justifyContent aquí
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
   selectedValue: {
     fontSize: 16,
     fontWeight: 'bold',
   },
+
   title: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 10,
   },
+
   buttonContainer: {
-    alignItems: 'center',
     marginTop: 10,
-    borderRadius: 5,
     marginBottom: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    width: 200,
+    alignSelf: 'center', // Centrar el contenedor
+  },
+
+  buttonText: {
+    color: '#FFD700', // Color amarillo
+    fontSize: 20,
+    fontWeight: 'bold', // Texto en negrita
+  },
+
+  sliderContainer: {
+    width: '100%',
+    marginBottom: 30, // Espacio entre los dos sliders
+    alignItems: 'center',
+  },
+
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#000000', // Texto en dorado
+    marginBottom: 10,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
   },
 
   input: {
@@ -231,6 +337,40 @@ const styles = StyleSheet.create({
     width: '80%',
     alignSelf: 'center',
   },
+
+  sliderContainer: {
+    width: '100%',
+    marginBottom: 30,
+    alignItems: 'center'
+
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  
+  buttonContainer2: {
+    flexDirection: 'row',
+    gap: 50, // Espacio entre los botones
+    marginTop: 10,
+    alignItems: 'center',
+  },
+
+  button: {
+    backgroundColor: '#FFFFFF', // Fondo blanco
+    padding: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#DDD', // Borde gris claro
+    width: 50, // Ancho fijo para los botones
+    alignItems: 'center', // Centrar el contenido
+  },
+  buttonText: {
+    color: '#FFD700', // Color amarillo
+    fontSize: 20,
+    fontWeight: 'bold', // Texto en negrita
+  },
+  
 });
 
 export default MaquinaFlexionesScreen;

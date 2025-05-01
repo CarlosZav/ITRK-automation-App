@@ -8,12 +8,15 @@ import MaquinaPlanchasScreen from './src/components/MaquinaPlanchas';
 import MaquinaSecadorasScreen from './src/components/MaquinaSecadoras';
 import MaquinaSecadorasFlexionesScreen from './src/components/MaquinaSecadoraFlexiones';
 import MaquinaSecadorasRotacionesScreen from './src/components/MaquinaSecadorasRotaciones';
+import CalibracionSecadorasScreen from './src/components/CalibracionSecadorasScreen';
+import MaquinaClavijasScreen from './src/components/MaquinaClavijas';
 import ConfigScreen from './src/components/ConfigScreen';
 import HelpFlexionesScreen from './src/components/HelpFlexionesScreen';
 import HelpCalentamientoScreen from './src/components/HelpCalentamientoScreen';
 import HelpPlanchasScreen from './src/components/HelpPlanchasScreen';
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Iconos de configuración
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 
 const Stack = createStackNavigator();
 
@@ -24,8 +27,8 @@ const App = () => {
         initialRouteName="Home"
         screenOptions={({ navigation }) => ({
           headerRight: () => (
-            <TouchableOpacity style={{ marginRight: 15 }} onPress={() => navigation.navigate('Con')}>
-              <Ionicons name="settings-outline" size={24} color="black" />
+            <TouchableOpacity style={{ marginRight: 20 }} onPress={() => navigation.navigate('Home')}>
+              <Icon name="home-lightbulb-outline" size={35} color="#FFD700" />
             </TouchableOpacity>
           ),
         })}>
@@ -41,6 +44,8 @@ const App = () => {
         <Stack.Screen name="Ayuda Maquina Flexiones" component={HelpFlexionesScreen} />
         <Stack.Screen name="Ayuda Maquina Calentamiento" component={HelpCalentamientoScreen} />
         <Stack.Screen name="Ayuda Maquina Planchas" component={HelpPlanchasScreen} />
+        <Stack.Screen name="Calibracion Maquina Secadoras" component={CalibracionSecadorasScreen} />
+        <Stack.Screen name="Maquina Clavijas" component={MaquinaClavijasScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,17 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { ScrollView } from 'react-native-gesture-handler';
 
-const SERVER_URL = 'http://192.168.0.101:5000';
+const SERVER_URL = 'http://10.224.55.216:5000';
+
+const InfoCard = ({ title, value }) => (
+  <View style={styles.cardWrapper}>
+    <View style={styles.card}>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.value}>{value}</Text>
+    </View>
+  </View>
+);
 
 const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
 
-  const [ciclosF, setCiclos] = useState('');
-  const [angulo1, setAngulo1] = useState('');
-  const [angulo2, setAngulo2] = useState('');
-  const [velocidadFlexion, setVelocidadFlexion] = useState('');  
+  const [flexionesSecadoras, setFlexiones] = useState('');
+  const [anguloA, setAnguloA] = useState('');
+  const [anguloB, setAnguloB] = useState('');
+  const [setVelocidadSecadorasFlex, setVelocidadFlexion] = useState('');  
 
   const [elapsedTime, setElapsedTime] = useState(0); // in seconds
 
@@ -19,6 +28,12 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [ipAddress, setIpAddress] = useState('');
+
+  //CARDS
+  const [conteoFlexSecadoras, setConteoFlexSecadoras] = useState(0);
+  const [estadoSecadorasFlex, setEstadoSecadorasFlex] = useState("Stop");
+  const [tiempoSecadorasFlex, setTiempoSecadorasFlex] = useState(0);
+  const [velocidadFlexiones, setVelocidadFlexiones] = useState(0);
 
   //Timer
   useEffect(() => {
@@ -52,6 +67,17 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
       console.log('Disconnected from server');
     });
 
+    // Aquí agregas la escucha directa a 'datosServidor'
+    newSocket.on('datosServidorasSecadorasFlex', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConteoFlexSecadoras(data.conteoFlexSecadoras);
+        setEstadoSecadorasFlex(data.estadoSecadorasFlex);
+        setVelocidadFlexiones(data.velocidadFlexiones);
+        setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
+      }
+    });
+
     setSocket(newSocket);
 
     // Limpia la conexión al desmontar el componente
@@ -63,49 +89,54 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
   // Mandar datos de seteo de ciclos al presionar el boton iniciar prueba
   const sendMessage = () => {
     const datos = {
-      seteo_ciclosF: ciclosF,
-      seteo_anguloA: angulo1,
-      seteo_anguloB: angulo2,
-      pausar : 'NO'
+      flexionesSecadoras: flexionesSecadoras,
+      anguloA: anguloA,
+      anguloB: anguloB,
+      setVelocidadSecadorasFlex: setVelocidadSecadorasFlex,
+      pausarSecadorasFlex : 'NO'
     };
-    socket.emit('datosfromFlexiones', datos);
+    socket.emit('datosfromSecadorasFlex', datos);
   };
 
   const sendMessage_pausar = () => {
     const datos = {
-      pausarF: 'SI',
+      pausarSecadorasFlex: 'SI',
     };
-    socket.emit('datosfromFlexiones_pausar', datos);
+    socket.emit('datosfromSecadorasFlexionesPausar', datos);
   };
 
   const sendMessage_reanudar = () => {
     const datos = {
-      pausarF: 'NO',
+      pausarSecadorasFlex: 'NO',
     };
-    socket.emit('datosfromFlexiones_pausar', datos);
+    socket.emit('datosfromSecadorasFlexionesPausar', datos);
   };
 
   const recibirDatos = () => {
     // Eliminar cualquier listener existente para evitar duplicados
-    socket.off('datosServidorFlexiones');
+    socket.off('datosServidorasSecadorasFlex');
   
     // Registrar un nuevo listener
-    socket.on('datosServidorFlexiones', (data) => {
+    socket.on('datosServidorasSecadorasFlex', (data) => {
       // Validar que data no sea nulo, indefinido ni vacío
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         console.log('Datos recibidos:', data);
   
-        let conteo_ciclosFlex = data.conteo_ciclosF;
-        let estado_pruebaFlex = data.estado_pruebaF;
-        let tiempo_transcurridoFlex = (data.tiempo_transcurridoF) / 60;
-  
-        console.log('Ciclos transcurridos: ', conteo_ciclosFlex);
-        console.log('Estado de la prueba: ', estado_pruebaFlex);
-        console.log('Tiempo transcurrido (min): ', tiempo_transcurridoFlex);
+        let conteoFlexSecadoras = data.conteoFlexSecadoras;
+        let estadoSecadorasFlex = data.estadoSecadorasFlex;
+        let tiempoSecadorasFlex = (data.tiempoSecadorasFlex) / 60;
+        let velocidadFlexiones = (data.velocidadFlexiones);
+        let flexionesSecadoras = (data.flexionesSecadoras);
+
+        console.log('Flexiones transcurridos: ', conteoFlexSecadoras);
+        console.log('Estado de la prueba: ', estadoSecadorasFlex);
+        console.log('Tiempo transcurrido (min): ', tiempoSecadorasFlex);
+        console.log('velocidadFlexiones: ', velocidadFlexiones);
+        console.log('set de Flexiones: ', flexionesSecadoras);
   
         Alert.alert(
           'Datos recibidos',
-          `Ciclos transcurridos: ${conteo_ciclosFlex}\nEstado de la prueba: ${estado_pruebaFlex}\nTiempo transcurrido (min): ${tiempo_transcurridoFlex}`
+          `Ciclos transcurridos: ${conteoFlexSecadoras}\nEstado de la prueba: ${estadoSecadorasFlex}\nTiempo transcurrido (min): ${tiempoSecadorasFlex}\nFlexiones establecidas: ${flexionesSecadoras}`
         );
       } else {
         Alert.alert('Advertencia', 'No se recibieron datos válidos del servidor.');
@@ -133,27 +164,35 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="help-circle-outline" size={30} color="#FFD700" />
+        <Icon name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
       <Image
         source={require('../../assets/Maquina2.png')}
         style={styles.image}
       />
+
+      <View style={styles.containerCards}>
+        <InfoCard title="Flexiones" value= {conteoFlexSecadoras.toString()} />
+        <InfoCard title="Estado" value={estadoSecadorasFlex.toString()} />
+        <InfoCard title="Velocidad de flexion (FPM)" value={velocidadFlexiones.toString()} />
+        <InfoCard title="Tiempo transcurrido (min)" value={tiempoSecadorasFlex.toString()} />
+      </View>
+
             <Text style={styles.title}>CANTIDAD DE FLEXIONES</Text>
             <TextInput
               style={styles.input}
-              value={ciclosF}
-              onChangeText={setCiclos}
+              value={flexionesSecadoras}
+              onChangeText={setFlexiones}
               keyboardType="numeric"
-              placeholder="Ingrese ciclos"
+              placeholder="Ingrese el numero de flexiones totales"
             />
 
             <Text style={styles.title}>ÁNGULO DE GIRO 1</Text>
             <TextInput
               style={styles.input}
-              value={angulo1}
-              onChangeText={setAngulo1}
+              value={anguloA}
+              onChangeText={setAnguloA}
               keyboardType="numeric"
               placeholder="Ingrese angulo 1"
             />
@@ -161,8 +200,8 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
             <Text style={styles.title}>ÁNGULO DE GIRO 2</Text>
             <TextInput
               style={styles.input}
-              value={angulo2}
-              onChangeText={setAngulo2}
+              value={anguloB}
+              onChangeText={setAnguloB}
               keyboardType="numeric"
               placeholder="Ingrese angulo 2"
             />
@@ -170,17 +209,14 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
             <Text style={styles.title}>VELOCIDAD DE FLEXIONES</Text>
             <TextInput
               style={styles.input}
-              value={velocidadFlexion}
+              value={setVelocidadSecadorasFlex}
               onChangeText={setVelocidadFlexion}
               keyboardType="numeric"
-              placeholder="Ingrese el numero de flexiones por min."
+              placeholder="Ingrese el numero de flexiones por min"
             />
       
       <View style={styles.buttonContainer}>
         <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Visualizar Datos" color="#FFD700" onPress={recibirDatos} />
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Pausar prueba" color="#FFD700" onPress={sendMessage_pausar} />
@@ -208,8 +244,8 @@ const styles = StyleSheet.create({
   },
   helpIcon: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 10, // Ajusta según tu diseño
+    right: 20, // Ajusta según tu diseño
   },
   title: {
     fontSize: 18,
@@ -234,6 +270,44 @@ const styles = StyleSheet.create({
     width: '80%',
     alignSelf: 'center',
   },
+
+  containerCards: {
+    padding: 10,
+    backgroundColor: '#ffffff',
+    flexDirection: 'row',
+    flexWrap: 'wrap',       // Permite que pasen a la siguiente línea si no caben
+    justifyContent: 'space-between', // Espaciado horizontal uniforme
+    paddingHorizontal: 5,
+  },
+
+  cardWrapper: {
+    width: '48%',
+    marginVertical: 8,
+  },
+
+  card: {
+  backgroundColor: '#FFD700',
+  borderRadius: 10,
+  padding: 15,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 2,
+  width: '100%',
+  borderColor: '#FFD700', // Contorno amarillo dorado
+  },
+  title: {
+    fontSize: 16,
+    color: '#000',
+    fontWeight: 'bold',
+  },
+  value: {
+    fontSize: 20,
+    color: '#555',
+    marginTop: 4,
+  },
+
 });
 
 export default MaquinaSecadorasFlexionesScreen;

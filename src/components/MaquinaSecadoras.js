@@ -1,46 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, Button, StyleSheet, Image, Alert , TextInput} from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { HeaderStyleInterpolators } from '@react-navigation/stack';
- 
+import React from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+
+
 const MaquinaSecadorasScreen = ({ navigation }) => {
+
+
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.helpIcon}
+        onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
+      >
+        <Icon name="robot-confused" size={30} color="#FFD700" />
+      </TouchableOpacity>
+
+
       <View style={styles.image_container}>
         <Image
-          source={require('../../assets/Maquina4.png')}
+          source={require('../../assets/Maquina2.png')}
           style={styles.image}
         />
       </View>
 
       {/* Menu Options */}
-        <View style={styles.menuContainer}>
-      
+      <View style={styles.menuContainer}>
 
-          <Text style={styles.title} >SELECCIONA LA FUNCIÓN DESEADA</Text>
-          
-          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Flexiones')}>
-            <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
-            <Text style={styles.menuText}>Función Flexiones</Text>
-          </TouchableOpacity>
-      
-          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Rotaciones')}>
-            <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
-            <Text style={styles.menuText}>Función Rotaciones</Text>
-          </TouchableOpacity>
-      
-        </View>
+        <Text style={styles.title}>SELECCIONA LA FUNCIÓN DESEADA</Text>
 
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Flexiones')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
+          <Text style={styles.menuText}>Función Flexiones</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Rotaciones')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
+          <Text style={styles.menuText}>Función Rotaciones</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Calibracion Maquina Secadoras')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
+          <Text style={styles.menuText}>Calibrar Maquina</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
- 
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF', // Fondo principal blanco
   },
   title: {
     fontSize: 22,
@@ -51,32 +63,26 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
 
-  headerStyle:{
-    headerTintColor: '#FFD700', // Detalle amarillo
+  helpIcon: {
+    position: 'absolute',
+    top: 10, // Ajusta según tu diseño
+    right: 20, // Ajusta según tu diseño
   },
-
+  
   image: {
     width: 100,
     height: 100,
     marginLeft: 50,
     marginTop: 50,
-    marginBotton: 100,
+    marginBottom: 10,
     alignItems: 'center',
   },
-
- /* image: {
-    width: 200,
-    height: 200,
-    resizeMode: 'contain',
-  },*/
   menuContainer: {
     flex: 1,
     padding: 20,
-    
   },
   menuItem: {
-    //backgroundColor: '#fff',
-    backgroundColor: '#FFD700', // Detalle amarillo
+    backgroundColor: '#FFD700', // Fondo amarillo
     borderRadius: 10,
     padding: 15,
     width: 300,
@@ -96,5 +102,4 @@ const styles = StyleSheet.create({
   },
 });
 
- 
 export default MaquinaSecadorasScreen;

@@ -35,6 +35,12 @@ const HomeScreen = ({ navigation }) => {
           <Image style={styles.icon} source={require('../../assets/Maquina4.png')} />
           <Text style={styles.menuText}>Maquina Secadoras</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Clavijas')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
+          <Text style={styles.menuText}>Maquina Clavijas</Text>
+        </TouchableOpacity>
+
       </View>
     </View>
   );

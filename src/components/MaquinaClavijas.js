@@ -18,38 +18,38 @@ const InfoCard = ({ title, value }) => (
   </View>
 );
 
-const MaquinaCalentamientoScreen = ({ navigation }) => {
+const MaquinaClavijasScreen = ({ navigation }) => {
 
   //Label
-  const [ciclos, setCiclos] = useState('');
-  const [milliOn, setMilliOn] = useState('');
-  const [milliOff, setMilliOff] = useState('');
+  const [ciclosC, setciclosC] = useState('');
+  const [milliOnC, setmilliOnC] = useState('');
+  const [milliOffC, setmilliOffC] = useState('');
   //Clock
-  const [elapsedTime, setElapsedTime] = useState(0); // in seconds
+  const [elapsedTimeC, setelapsedTimeC] = useState(0); // in seconds
   //Comunicación WS Envío
-  const [socket, setSocket] = useState(null);
-  const [message, setMessage] = useState("");
-  const [ipAddress, setIpAddress] = useState('');
+  const [socketC, setsocketC] = useState(null);
+  const [messageC, setMessageC] = useState("");
+  const [ipAddressC, setIpAddressC] = useState('');
 
   //Modal
-  const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisibleC, setModalVisibleC] = useState(false);
 
-  const [sensorValue, setSensorValue] = useState(0);
-  const [conteoCiclos, setConteoCiclos] = useState(0);
-  const [estadoSSR, setEstadoSSR] = useState("false");
-  const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
+  const [sensorValueC, setSensorValueC] = useState(0);
+  const [conteociclosC, setConteociclosC] = useState(0);
+  const [estadoSSRC, setEstadoSSRC] = useState("false");
+  const [tiempoTranscurridoC, setTiempoTranscurridoC] = useState(0);
 
   //Timer
   useEffect(() => {
     let timer;
-    if (elapsedTime > 0) {
+    if (elapsedTimeC > 0) {
       timer = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
+        setelapsedTimeC(prev => prev + 1);
       }, 1000);
     }
   
     return () => clearInterval(timer);
-  }, [elapsedTime]);
+  }, [elapsedTimeC]);
 
   // Load the IP address from AsyncStorage
   useEffect(() => {
@@ -57,8 +57,8 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
       try {
         const savedIpAddress = await AsyncStorage.getItem('ServerURL');
         if (savedIpAddress) {
-          setIpAddress(savedIpAddress);
-          initializeSocket(savedIpAddress);
+          setIpAddressC(savedIpAddress);
+          initializesocketC(savedIpAddress);
         }
       } catch (error) {
         console.error("Error loading IP address:", error);
@@ -70,73 +70,73 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
 
   useEffect(() => {
       // Inicializa la conexión con el servidor
-      const newSocket = io(SERVER_URL, {
+      const newsocketC = io(SERVER_URL, {
         transports: ['websocket'],
       });
   
-      newSocket.on('connect', () => {
+      newsocketC.on('connect', () => {
         console.log('Connected to Python server', SERVER_URL);
         Alert.alert('Connection', 'Connected to Python server.\nIp: ' + SERVER_URL  + '.');
       });
   
-      newSocket.on('message', (msg) => {
+      newsocketC.on('messageC', (msg) => {
         console.log('Message from server:', msg);
-        setMessage(msg);
+        setMessageC(msg);
       });
 
       // Aquí agregas la escucha directa a 'datosServidor'
-      newSocket.on('datosServidor', (data) => {
+      newsocketC.on('datosServidorC', (data) => {
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
           console.log('Datos recibidos:', data);
-          setSensorValue(data.sensor_value);
-          setConteoCiclos(data.conteo_ciclos);
-          setEstadoSSR(data.estado_ssr);
-          setTiempoTranscurrido(parseFloat((data.tiempo_transcurrido / 60000).toFixed(4)));
+          setSensorValueC(data.sensorValueC);
+          setConteociclosC(data.conteo_ciclosC);
+          setEstadoSSRC(data.estadoSsrC);
+          setTiempoTranscurridoC(parseFloat((data.tiempoTranscurridoC / 60000).toFixed(4)));
         }
       });
   
-      newSocket.on('disconnect', () => {
+      newsocketC.on('disconnect', () => {
         console.log('Disconnected from server');
       });
   
-      setSocket(newSocket);
+      setsocketC(newsocketC);
   
       // Limpia la conexión al desmontar el componente
       return () => {
-        newSocket.disconnect();
+        newsocketC.disconnect();
       };
     }, []);
 
   const sendMessage = () => {
     //Milisengundos en ON y OFF
-    let mili_ON = milliOn * 60 * 1000; 
-    let mili_OFF = milliOff * 60 * 1000; 
+    let mili_ON = milliOnC * 60 * 1000; 
+    let mili_OFF = milliOffC * 60 * 1000; 
 
     print('tiempo on : ', mili_ON);
     print('tiempo off : ', mili_OFF);
 
     const datos = {
-      seteo_ciclos: ciclos,
-      seteo_tiempo_encendido: mili_ON,
-      seteo_tiempo_apagado: mili_OFF,
+      seteoCiclosC: ciclosC,
+      setTiempoEncendidoC: mili_ON,
+      setTiempoApagadoC: mili_OFF,
     };
-    socket.emit('datosfromApp', datos);
+    socketC.emit('datosfromAppC', datos);
   };
 
   const recibirDatos = () => {
-    socket.emit('recibirDatosServer');
-    socket.on('datosServidor', (data) => {
+    socketC.emit('recibirDatosServerC');
+    socketC.on('datosServidorC', (data) => {
       // Validar que data no sea nulo, indefinido ni vacío
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
       console.log('Datos recibidos:', data);
 
-      let sensor_valueJS = data.sensor_value;
-      let conteo_ciclosJS = data.conteo_ciclos;
-      let estado_ssrJS = data.estado_ssr;
-      let tiempo_transcurridoJS = data.tiempo_transcurrido;
+      let sensor_valueJS = data.sensorValueC;
+      let conteo_ciclosCJS = data.conteoCiclosC;
+      let estado_ssrJS = data.estadoSsrC;
+      let tiempo_transcurridoJS = data.tiempoTranscurridoC;
 
       console.log('valor de sensor: ', sensor_valueJS);
-      console.log('conteo ciclos: ', conteo_ciclosJS);
+      console.log('conteo ciclosC: ', conteo_ciclosCJS);
       console.log('estado ssr: ', estado_ssrJS);
       console.log('tiempo transcurrido: ', tiempo_transcurridoJS);
 
@@ -146,7 +146,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
       }
     });
     
-    socket.on('error', (mensaje) => {
+    socketC.on('error', (mensaje) => {
       Alert.alert('Error', mensaje);
     });
   };  
@@ -163,7 +163,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
     setMinute2('00');
     setSecond2('00');
 
-    setCiclos('1');
+    setciclosC('1');
   };
 
   const pausarCiclo = () => {
@@ -182,10 +182,10 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.containerCards}>
-        <InfoCard title="Corriente (A)" value= {sensorValue.toString()} />
-        <InfoCard title="Estado" value={estadoSSR.toString()} />
-        <InfoCard title="Ciclos transcurridos" value={conteoCiclos.toString()} />
-        <InfoCard title="Tiempo de estado (min)" value={tiempoTranscurrido.toString()} />
+        <InfoCard title="Corriente (A)" value= {sensorValueC.toString()} />
+        <InfoCard title="Estado" value={estadoSSRC.toString()} />
+        <InfoCard title="ciclosC transcurridos" value={conteociclosC.toString()} />
+        <InfoCard title="Tiempo de estado (min)" value={tiempoTranscurridoC.toString()} />
       </View>
      
       <TouchableOpacity
@@ -198,8 +198,8 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
             <Text style={styles.title}>TIEMPO ENCENDIDO</Text>
             <TextInput
               style={styles.input}
-              value={milliOn}
-              onChangeText={setMilliOn}
+              value={milliOnC}
+              onChangeText={setmilliOnC}
               keyboardType="numeric"
               placeholder="Ingrese tiempo encendido en minutos"
             />
@@ -207,19 +207,19 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
             <Text style={styles.title}>TIEMPO APAGADO</Text>
             <TextInput
               style={styles.input}
-              value={milliOff}
-              onChangeText={setMilliOff}
+              value={milliOffC}
+              onChangeText={setmilliOffC}
               keyboardType="numeric"
               placeholder="Ingrese tiempo apagado en min"
             />
       
-            <Text style={styles.title}>CANTIDAD DE CICLOS</Text>
+            <Text style={styles.title}>CANTIDAD DE ciclosC</Text>
             <TextInput
               style={styles.input}
-              value={ciclos}
-              onChangeText={setCiclos}
+              value={ciclosC}
+              onChangeText={setciclosC}
               keyboardType="numeric"
-              placeholder="Ingrese ciclos"
+              placeholder="Ingrese ciclosC"
             />
       
       <View style={styles.buttonContainer}>
@@ -337,4 +337,4 @@ const styles = StyleSheet.create({
   },
 });
  
-export default MaquinaCalentamientoScreen;
+export default MaquinaClavijasScreen;
