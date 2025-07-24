@@ -3,6 +3,7 @@ import { View, Text, Button,StyleSheet, Image, Alert , TextInput, TouchableOpaci
 import { io } from "socket.io-client";
 import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
 const SERVER_URL = 'http://10.224.55.98:5000'; // 192.168.0.101
 
@@ -21,6 +22,12 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [ipAddress, setIpAddress] = useState('');
+
+  const [conexionEspSecadorasRotacion, setConexionEspSecadorasRotacion] = useState('');
+  const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
+
+  const [setRevolucionesSecadoras, setSetRevolucionesSecadoras] = useState('0');
+
 
   //Timer
   useEffect(() => {
@@ -52,6 +59,39 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
 
     newSocket.on('disconnect', () => {
       console.log('Disconnected from server');
+    });
+
+    // Aquí agregas la escucha directa a 'datosServidor'
+    newSocket.on('datosServidorasSecadorasFlex', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConteoFlexSecadoras(data.conteoFlexSecadoras);
+        setEstadoSecadorasFlex(data.estadoSecadorasFlex);
+        setVelocidadFlexiones(data.velocidadFlexiones);
+        setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
+
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+    // Se lee el mensaje de conexion
+    newSocket.on('eventoConexionEspSecadorasRot', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
     });
 
     setSocket(newSocket);
@@ -104,6 +144,14 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         console.log('Ciclos transcurridos: ', conteo_ciclosFlex);
         console.log('Estado de la prueba: ', estado_pruebaFlex);
         console.log('Tiempo transcurrido (min): ', tiempo_transcurridoFlex);
+
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
   
         Alert.alert(
           'Datos recibidos',
@@ -140,8 +188,39 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
     }
   };
 
+  const fillValueForProgress = setRevolucionesSecadoras !== '0' && !isNaN(parseFloat(setRevolucionesSecadoras))
+    ? (conteo_revSecadorasRot * 100) / parseFloat(setRevolucionesSecadoras)
+    : 0;
+
   return (
     <ScrollView style={styles.container}>
+
+      <Image
+        source={require('../../assets/Maquina2.png')}
+        style={styles.image}
+      />
+
+      
+
+      <View style={styles.cardContainerCircular} title="Flexiones">
+      
+          <Text style={styles.cardTitle}>Progreso de Rotaciones</Text>
+        <AnimatedCircularProgress
+          size={200}
+          width={15}
+          fill={fillValueForProgress} // porcentaje de pasos completados
+          tintColor="#FFD700"
+          backgroundColor="#3d5875"
+          duration={1000}
+          >
+          {(fill) => (
+            <Text style={styles.progressText}>
+              {Math.round((fill * parseFloat(setRevolucionesSecadoras)) / 100)} / {Math.round(parseFloat(setRevolucionesSecadoras))}
+            </Text>
+          )}
+        </AnimatedCircularProgress>
+
+      </View>
 
       <TouchableOpacity
         style={styles.helpIcon}
@@ -150,10 +229,6 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         <Icon name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
-      <Image
-        source={require('../../assets/Maquina2.png')}
-        style={styles.image}
-      />
             <Text style={styles.title}>CANTIDAD DE CICLOS</Text>
             <TextInput
               style={styles.input}
@@ -369,6 +444,37 @@ const styles = StyleSheet.create({
     color: '#FFD700', // Color amarillo
     fontSize: 20,
     fontWeight: 'bold', // Texto en negrita
+  },
+
+  cardContainerCircular: {
+    backgroundColor: 'white', // Set the background to white
+    borderRadius: 20,        // Optional: Add rounded corners for a softer look
+    padding: 20,             // Optional: Add some padding inside the card
+    marginVertical: 10,       // Optional: Add vertical margin to separate cards
+    marginHorizontal: 0,     // Optional: Add horizontal margin
+    borderColor: '#ccc',       // Set a light gray border color for contrast
+    borderWidth: 1,          // Set the border width
+    alignItems: 'center',     // Center the content horizontally within the card
+    justifyContent: 'center', // Center the content vertically within the card (if needed)
+    // Optional: Add shadow for a lifted effect (platform-specific)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10, // Add some space between the title and the progress
+    color: '#333', // Optional: Style the title text color
+    textAlign: 'left', // Optional: Center the title
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   
 });

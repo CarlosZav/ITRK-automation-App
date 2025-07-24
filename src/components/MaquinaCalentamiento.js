@@ -5,8 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from "socket.io-client";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import DropDownPicker from 'react-native-dropdown-picker';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.98:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
+const SERVER_URL = 'http://192.168.0.101:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
 //const ServerURL = "192.168.137.19";
 
 const InfoCard = ({ title, value }) => (
@@ -38,6 +39,10 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
   const [conteoCiclos, setConteoCiclos] = useState(0);
   const [estadoSSR, setEstadoSSR] = useState("false");
   const [tiempoTranscurrido, setTiempoTranscurrido] = useState(0);
+
+  const [setCiclosCalentamiento, setSetCiclosCalentamiento] = useState('0')
+  const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
+  const [conexionEspCalentamiento, setConexionEspCalentamiento] = useState('');
 
   //Timer
   useEffect(() => {
@@ -84,6 +89,10 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
         setMessage(msg);
       });
 
+      newSocket.on('disconnect', () => {
+        console.log('Disconnected from server');
+      });
+
       // Aquí agregas la escucha directa a 'datosServidor'
       newSocket.on('datosServidor', (data) => {
         if (data && typeof data === 'object' && Object.keys(data).length > 0) {
@@ -92,12 +101,43 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
           setConteoCiclos(data.conteo_ciclos);
           setEstadoSSR(data.estado_ssr);
           setTiempoTranscurrido(parseFloat((data.tiempo_transcurrido / 60000).toFixed(4)));
+
+          setConexionEspCalentamiento(data.habilitar); // Store in state
+          console.log('Dato habilitar:', data.habilitar); // Log the value directly
+          if (data.habilitar === "True") {
+            setButtonEnabled(true); // Now it will work
+          } else {
+            setButtonEnabled(false); // Now it will work
+          }
+
         }
       });
   
-      newSocket.on('disconnect', () => {
-        console.log('Disconnected from server');
-      });
+      newSocket.on('conexionAppCalentamiento', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspCalentamiento(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+    newSocket.on('eventoConexionEspCalentamiento', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspCalentamiento(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
   
       setSocket(newSocket);
   
@@ -123,34 +163,6 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
     socket.emit('datosfromApp', datos);
   };
 
-  const recibirDatos = () => {
-    socket.emit('recibirDatosServer');
-    socket.on('datosServidor', (data) => {
-      // Validar que data no sea nulo, indefinido ni vacío
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-      console.log('Datos recibidos:', data);
-
-      let sensor_valueJS = data.sensor_value;
-      let conteo_ciclosJS = data.conteo_ciclos;
-      let estado_ssrJS = data.estado_ssr;
-      let tiempo_transcurridoJS = data.tiempo_transcurrido;
-
-      console.log('valor de sensor: ', sensor_valueJS);
-      console.log('conteo ciclos: ', conteo_ciclosJS);
-      console.log('estado ssr: ', estado_ssrJS);
-      console.log('tiempo transcurrido: ', tiempo_transcurridoJS);
-
-      Alert.alert('Datos recibidos', JSON.stringify(data, null, 2));
-      } else {
-        Alert.alert('Advertencia', 'No se recibieron datos válidos del servidor.');
-      }
-    });
-    
-    socket.on('error', (mensaje) => {
-      Alert.alert('Error', mensaje);
-    });
-  };  
-
   // Función para resetear valores
   const resetValues = () => {
     setDay('00');
@@ -171,6 +183,11 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
     Alert.alert('Ciclo pausado');
   };
 
+   // Calculate the fill value for the circular progress
+  const fillValueForProgress = setCiclosCalentamiento !== '0' && !isNaN(parseFloat(setCiclosCalentamiento))
+    ? (conteoCiclos * 100) / parseFloat(setCiclosCalentamiento)
+    : 0;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
 
@@ -187,6 +204,26 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
         <InfoCard title="Ciclos transcurridos" value={conteoCiclos.toString()} />
         <InfoCard title="Tiempo de estado (min)" value={tiempoTranscurrido.toString()} />
       </View>
+
+      <View style={styles.cardContainerCircular} title="Flexiones">
+      
+               <Text style={styles.cardTitle}>Progreso de Rotaciones</Text>
+              <AnimatedCircularProgress
+                size={200}
+                width={15}
+                fill={fillValueForProgress} // porcentaje de pasos completados
+                tintColor="#FFD700"
+                backgroundColor="#3d5875"
+                duration={1000}
+                >
+                {(fill) => (
+                  <Text style={styles.progressText}>
+                    {Math.round((fill * parseFloat(setCiclosCalentamiento)) / 100)} / {Math.round(parseFloat(setCiclosCalentamiento))}
+                  </Text>
+                )}
+              </AnimatedCircularProgress>
+      
+            </View>
      
       <TouchableOpacity
               style={styles.helpIcon}
@@ -224,18 +261,24 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
       
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="Enviar Datos" color="#FFD700" onPress={sendMessage} />
-        </View>
-        <View style={styles.button}>
-          <Button title="Recibir Datos" color="#FFD700" onPress={recibirDatos} />
+          <Button title="Enviar Datos" 
+          color="#FFD700" 
+          onPress={sendMessage}
+          disabled={!buttonEnabled} />
         </View>
       </View>
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="Resetear Valores" color="#FF6347" onPress={resetValues} />
+          <Button title="Resetear Valores" 
+          color="#FF6347" 
+          onPress={resetValues}
+          disabled={!buttonEnabled} />
         </View>
         <View style={styles.button}>
-          <Button title="Pausar ciclo" color="#FF6347" onPress={resetValues} />
+          <Button title="Pausar ciclo" 
+          color="#FF6347" 
+          onPress={resetValues}
+          disabled={!buttonEnabled} />
         </View>
       </View>
     </ScrollView>
@@ -334,6 +377,37 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#555',
     marginTop: 4,
+  },
+
+  cardContainerCircular: {
+    backgroundColor: 'white', // Set the background to white
+    borderRadius: 20,        // Optional: Add rounded corners for a softer look
+    padding: 20,             // Optional: Add some padding inside the card
+    marginVertical: 10,       // Optional: Add vertical margin to separate cards
+    marginHorizontal: 0,     // Optional: Add horizontal margin
+    borderColor: '#ccc',       // Set a light gray border color for contrast
+    borderWidth: 1,          // Set the border width
+    alignItems: 'center',     // Center the content horizontally within the card
+    justifyContent: 'center', // Center the content vertically within the card (if needed)
+    // Optional: Add shadow for a lifted effect (platform-specific)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10, // Add some space between the title and the progress
+    color: '#333', // Optional: Style the title text color
+    textAlign: 'left', // Optional: Center the title
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
  

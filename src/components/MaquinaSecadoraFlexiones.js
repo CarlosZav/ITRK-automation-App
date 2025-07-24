@@ -3,8 +3,9 @@ import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpac
 import { io } from "socket.io-client";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { ScrollView } from 'react-native-gesture-handler';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.216:5000';
+const SERVER_URL = 'http://10.224.55.130:5000';
 
 const InfoCard = ({ title, value }) => (
   <View style={styles.cardWrapper}>
@@ -35,6 +36,11 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
   const [tiempoSecadorasFlex, setTiempoSecadorasFlex] = useState(0);
   const [velocidadFlexiones, setVelocidadFlexiones] = useState(0);
 
+  const [setFlexionesSecadoras, setSetFlexionesSecadoras] = useState('0');
+  const [conexionEspSecadorasRotacion, setConexionEspSecadorasRotacion] = useState('');
+  
+  const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
+
   //Timer
   useEffect(() => {
     let timer;
@@ -56,6 +62,12 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
     newSocket.on('connect', () => {
       console.log('Connected to Python server', SERVER_URL);
       Alert.alert('Connection', 'Connected to Python server.\nIp: ' + SERVER_URL  + '.');
+
+      const datos = {
+        mensaje: 'conexionSatisfactoria',
+      };
+
+      newSocket.emit('conexionAppSecadorasRot', datos);
     });
 
     newSocket.on('message', (msg) => {
@@ -75,6 +87,40 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
         setEstadoSecadorasFlex(data.estadoSecadorasFlex);
         setVelocidadFlexiones(data.velocidadFlexiones);
         setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
+
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+    newSocket.on('conexionAppSecadorasRotDev', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+    newSocket.on('eventoConexionEspSecadorasRot', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
       }
     });
 
@@ -157,6 +203,11 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
     Alert.alert('Ciclo pausado');
   };
 
+  const fillValueForProgress = setFlexionesSecadoras !== '0' && !isNaN(parseFloat(setFlexionesSecadoras))
+    ? (conteoFlexSecadoras * 100) / parseFloat(setFlexionesSecadoras)
+    : 0;
+
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
 
@@ -179,11 +230,39 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
         <InfoCard title="Tiempo transcurrido (min)" value={tiempoSecadorasFlex.toString()} />
       </View>
 
+      <View style={styles.cardContainerCircular} title="Flexiones">
+      
+          <Text style={styles.cardTitle}>Progreso de Flexiones</Text>
+        <AnimatedCircularProgress
+          size={200}
+          width={15}
+          fill={fillValueForProgress} // porcentaje de pasos completados
+          tintColor="#FFD700"
+          backgroundColor="#3d5875"
+          duration={1000}
+          >
+          {(fill) => (
+            <Text style={styles.progressText}>
+              {Math.round((fill * parseFloat(setFlexionesSecadoras)) / 100)} / {Math.round(parseFloat(setFlexionesSecadoras))}
+            </Text>
+          )}
+        </AnimatedCircularProgress>
+
+      </View>
+
+
+
             <Text style={styles.title}>CANTIDAD DE FLEXIONES</Text>
             <TextInput
               style={styles.input}
               value={flexionesSecadoras}
-              onChangeText={setFlexiones}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setFlexiones(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese el numero de flexiones totales"
             />
@@ -192,7 +271,13 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               value={anguloA}
-              onChangeText={setAnguloA}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setAnguloA(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese angulo 1"
             />
@@ -201,7 +286,13 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               value={anguloB}
-              onChangeText={setAnguloB}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setAnguloB(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese angulo 2"
             />
@@ -210,19 +301,35 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               value={setVelocidadSecadorasFlex}
-              onChangeText={setVelocidadFlexion}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setVelocidadFlexion(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese el numero de flexiones por min"
             />
       
       <View style={styles.buttonContainer}>
-        <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
+        <Button 
+        title="Iniciar nueva prueba" 
+        color="#FFD700"
+        disabled={!buttonEnabled}
+        onPress={sendMessage} />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Pausar prueba" color="#FFD700" onPress={sendMessage_pausar} />
+        <Button title="Pausar prueba" 
+        color="#FFD700" 
+        onPress={sendMessage_pausar}
+        disabled={!buttonEnabled} />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Reanudar prueba" color="#FFD700" onPress={sendMessage_reanudar} />
+        <Button title="Reanudar prueba" 
+        color="#FFD700" 
+        onPress={sendMessage_reanudar}
+        disabled={!buttonEnabled} />
       </View> 
     </ScrollView>
   );
@@ -307,6 +414,38 @@ const styles = StyleSheet.create({
     color: '#555',
     marginTop: 4,
   },
+
+  cardContainerCircular: {
+    backgroundColor: 'white', // Set the background to white
+    borderRadius: 20,        // Optional: Add rounded corners for a softer look
+    padding: 20,             // Optional: Add some padding inside the card
+    marginVertical: 10,       // Optional: Add vertical margin to separate cards
+    marginHorizontal: 0,     // Optional: Add horizontal margin
+    borderColor: '#ccc',       // Set a light gray border color for contrast
+    borderWidth: 1,          // Set the border width
+    alignItems: 'center',     // Center the content horizontally within the card
+    justifyContent: 'center', // Center the content vertically within the card (if needed)
+    // Optional: Add shadow for a lifted effect (platform-specific)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10, // Add some space between the title and the progress
+    color: '#333', // Optional: Style the title text color
+    textAlign: 'left', // Optional: Center the title
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+
 
 });
 

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpacity} from 'react-native';
+import { View, Text, State, Button, StyleSheet, Image, Dimensions, Alert , TextInput, TouchableOpacity} from 'react-native';
 import { io } from "socket.io-client";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { ScrollView } from 'react-native-gesture-handler';
+import { ProgressChart } from 'react-native-chart-kit';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.216:5000';
+const SERVER_URL = 'http://10.224.55.130:5000';
 
 const InfoCard = ({ title, value }) => (
   <View style={styles.cardWrapper}>
@@ -20,8 +22,7 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
   const [revolucionesSecadoras, setRevoluciones] = useState('');
   const [revCambioSecadoras, setCambio] = useState('');
   const [velocidadRevoluciones, setVelocidadRevoluciones] = useState('');  
-
-  const [elapsedTime, setElapsedTime] = useState(0); // in seconds
+  const [revolucionesSecadorasCircular, setRevolucionesCircular] = useState('0');
 
   //Comunicación WS Envío
   const [socket, setSocket] = useState(null);
@@ -33,20 +34,12 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
   const [estado_pruebaSecadorasRot, setEstado_pruebaSecadorasRot] = useState("Stop");
   const [tiempo_pruebaSecadorasRot, setTiempo_pruebaSecadorasRot] = useState(0);
   const [velocidad_SecadorasRot, setVelocidad_SecadorasRot] = useState(0);
+  const [setRevolucionesSecadoras, setSetRevolucionesSecadoras] = useState('0');
+  const [conexionEspSecadorasRotacion, setConexionEspSecadorasRotacion] = useState('');
 
-  //Timer
-  useEffect(() => {
-    let timer;
-    if (elapsedTime > 0) {
-      timer = setInterval(() => {
-        setElapsedTime(prev => prev + 1);
-      }, 1000);
-    }
+  const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
 
-    return () => clearInterval(timer);
-  }, [elapsedTime]);
-
-  useEffect(() => {
+   useEffect(() => {
     // Inicializa la conexión con el servidor
     const newSocket = io(SERVER_URL, {
       transports: ['websocket'],
@@ -55,6 +48,12 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
     newSocket.on('connect', () => {
       console.log('Connected to Python server', SERVER_URL);
       Alert.alert('Connection', 'Connected to Python server.\nIp: ' + SERVER_URL  + '.');
+
+      const datos = {
+        mensaje: 'conexionSatisfactoria',
+      };
+
+      newSocket.emit('conexionAppSecadorasRot', datos);
     });
 
     newSocket.on('message', (msg) => {
@@ -66,6 +65,19 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
       console.log('Disconnected from server');
     });
 
+    newSocket.on('conexionAppSecadorasRotDev', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
     // Aquí agregas la escucha directa a 'datosServidor'
     newSocket.on('datosServerPlanchas', (data) => {
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
@@ -73,7 +85,36 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
         setConteo_revSecadorasRot(data.conteo_revSecadorasRot);
         setEstado_pruebaSecadorasRot(data.estado_pruebaSecadorasRot);
         setVelocidad_SecadorasRot(data.velocidad_SecadorasRot);
+        setSetRevolucionesSecadoras(data.setRevSecadorasRot);
         setTiempo_pruebaSecadorasRot(parseFloat((data.tiempo_pruebaSecadorasRot / 60).toFixed(4)));
+        console.log('conteo_revSecadorasRot:', data.conteo_revSecadorasRot);
+        console.log('estado_pruebaSecadorasRot:', data.estado_pruebaSecadorasRot);
+        console.log('velocidad_SecadorasRot:', data.velocidad_SecadorasRot);
+        console.log('tiempo_pruebaSecadorasRot:', parseFloat((data.tiempo_pruebaSecadorasRot / 60).toFixed(4)));
+        console.log('revoluciones establecidas:', data.setRevSecadorasRot)
+
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+
+    // Se lee el mensaje de conexion
+    newSocket.on('eventoConexionEspSecadorasRot', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
       }
     });
 
@@ -110,45 +151,6 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
     socket.emit('datosfromSecadorasRotaciones_pausar', datos);
   };
 
-  const recibirDatos = () => {
-    // Eliminar cualquier listener existente para evitar duplicados
-    socket.off('datosServerPlanchas');
-  
-    // Registrar un nuevo listener
-    socket.on('datosServerPlanchas', (data) => {
-      // Validar que data no sea nulo, indefinido ni vacío
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        console.log('Datos recibidos:', data);
-  
-        let conteo_revSecadorasRot = data.conteo_revSecadorasRot;
-        let estado_pruebaSecadorasRot = data.estado_pruebaSecadorasRot;
-        let tiempo_pruebaSecadorasRot = (data.tiempo_pruebaSecadorasRot) / 60;
-        let velocidad_SecadorasRot = data.velocidad_SecadorasRot;
-        let setRevSecadorasRot = data.setRevSecadorasRot;
-
-        console.log('Revoluciones transcurridas: ', conteo_revSecadorasRot);
-        console.log('Estado de la prueba: ', estado_pruebaSecadorasRot);
-        console.log('tiempo de prueba ', tiempo_pruebaSecadorasRot);
-        console.log('Velocidad (RPM): ', velocidad_SecadorasRot);
-        console.log('Set revoluciones: ', setRevSecadorasRot);
-  
-        Alert.alert(
-          'Datos recibidos',
-          `Revoluciones transcurridos: ${conteo_revSecadorasRot}\n
-          Estado de la prueba: ${estado_pruebaSecadorasRot}\n
-          Tiempo transcurrido (min): ${tiempo_pruebaSecadorasRot}\n
-          Velocidad (RPM):  ${velocidad_SecadorasRot}\n
-          Set revoluciones: ${setRevSecadorasRot}`
-        );
-      } else {
-        Alert.alert('Advertencia', 'No se recibieron datos válidos del servidor.');
-      }
-    });
-  
-    // Emitir solicitud al servidor
-    socket.emit('recibirDatosServerSecadorasRot');
-  };
-
   // Función para resetear valores
   const resetValues = () => {
     
@@ -158,6 +160,12 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
     // Implement your logic to pause the cycle here
     Alert.alert('Ciclo pausado');
   };
+
+   // Calculate the fill value for the circular progress
+  const fillValueForProgress = setRevolucionesSecadoras !== '0' && !isNaN(parseFloat(setRevolucionesSecadoras))
+    ? (conteo_revSecadorasRot * 100) / parseFloat(setRevolucionesSecadoras)
+    : 0;
+ 
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -175,26 +183,58 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
       />
 
       <View style={styles.containerCards}>
-        <InfoCard title="Flexiones" value= {conteo_revSecadorasRot.toString()} />
+        <InfoCard title="Corriente (A)" value= {conteo_revSecadorasRot.toString()} />
         <InfoCard title="Estado" value={estado_pruebaSecadorasRot.toString()} />
         <InfoCard title="Velocidad de flexion (FPM)" value={velocidad_SecadorasRot.toString()} />
         <InfoCard title="Tiempo transcurrido (min)" value={tiempo_pruebaSecadorasRot.toString()} />
+      </View>
+
+      <View style={styles.cardContainerCircular} title="Flexiones">
+
+         <Text style={styles.cardTitle}>Progreso de Rotaciones</Text>
+        <AnimatedCircularProgress
+          size={200}
+          width={15}
+          fill={fillValueForProgress} // porcentaje de pasos completados
+          tintColor="#FFD700"
+          backgroundColor="#3d5875"
+          duration={1000}
+          >
+          {(fill) => (
+            <Text style={styles.progressText}>
+              {Math.round((fill * parseFloat(setRevolucionesSecadoras)) / 100)} / {Math.round(parseFloat(setRevolucionesSecadoras))}
+            </Text>
+          )}
+        </AnimatedCircularProgress>
+
       </View>
 
             <Text style={styles.title}>CANTIDAD DE REVOLUCIONES</Text>
             <TextInput
               style={styles.input}
               value={revolucionesSecadoras}
-              onChangeText={setRevoluciones}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setRevoluciones(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese ciclos"
             />
-
+            
             <Text style={styles.title}>REVOLUCIONES DE CAMBIO</Text>
             <TextInput
               style={styles.input}
               value={revCambioSecadoras}
-              onChangeText={setCambio}
+                onChangeText={(text) => {
+                  if (text === '0') {
+                    alert('El valor no puede ser 0');
+                    return;
+                  }
+                  setCambio(text);
+                }}
               keyboardType="numeric"
               placeholder="Ingrese el número de revoluciones para cambiar sentido"
             />
@@ -203,22 +243,34 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
             <TextInput
               style={styles.input}
               value={velocidadRevoluciones}
-              onChangeText={setVelocidadRevoluciones}
+              onChangeText={(text) => {
+                if (text === '0') {
+                  alert('El valor no puede ser 0');
+                  return;
+                }
+                setVelocidadRevoluciones(text);
+              }}
               keyboardType="numeric"
               placeholder="Ingrese la velocidad en RPMs"
             />
       
       <View style={styles.buttonContainer}>
-        <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
+        <Button title="Iniciar nueva prueba"
+         color="#FFD700"  // Gray if disabled
+         onPress={sendMessage}
+         disabled={!buttonEnabled} />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Visualizar Datos" color="#FFD700" onPress={recibirDatos} />
+        <Button title="Pausar prueba" 
+        color="#FFD700"
+        onPress={sendMessage_pausar}
+        disabled={!buttonEnabled} />
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Pausar prueba" color="#FFD700" onPress={sendMessage_pausar} />
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button title="Reanudar prueba" color="#FFD700" onPress={sendMessage_reanudar} />
+        <Button title="Reanudar prueba" 
+        color="#FFD700"
+        onPress={sendMessage_reanudar}
+        disabled={!buttonEnabled} />
       </View> 
     </ScrollView>
   );
@@ -302,6 +354,36 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: '#555',
     marginTop: 4,
+  },
+  cardContainerCircular: {
+    backgroundColor: 'white', // Set the background to white
+    borderRadius: 20,        // Optional: Add rounded corners for a softer look
+    padding: 20,             // Optional: Add some padding inside the card
+    marginVertical: 10,       // Optional: Add vertical margin to separate cards
+    marginHorizontal: 0,     // Optional: Add horizontal margin
+    borderColor: '#ccc',       // Set a light gray border color for contrast
+    borderWidth: 1,          // Set the border width
+    alignItems: 'center',     // Center the content horizontally within the card
+    justifyContent: 'center', // Center the content vertically within the card (if needed)
+    // Optional: Add shadow for a lifted effect (platform-specific)
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10, // Add some space between the title and the progress
+    color: '#333', // Optional: Style the title text color
+    textAlign: 'left', // Optional: Center the title
+  },
+  progressText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 
 });

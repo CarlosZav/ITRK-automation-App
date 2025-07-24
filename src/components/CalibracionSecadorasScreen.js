@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 
-const SERVER_URL = 'http://192.168.0.101:5000'; // 192.168.0.101
+const SERVER_URL = 'http://10.224.55.130:5000'; // 192.168.0.101
 
 const CalibracionSecadorasScreen = ({ navigation }) => {
   const [gradosCalibrar, setGradosCalibrar] = useState('');
@@ -12,7 +12,9 @@ const CalibracionSecadorasScreen = ({ navigation }) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [ipAddress, setIpAddress] = useState('');
+  const [conexionEspSecadorasRotacion, setConexionEspSecadorasRotacion] = useState('');
 
+  const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
   useEffect(() => {
     let timer;
     if (elapsedTime > 0) {
@@ -32,6 +34,12 @@ const CalibracionSecadorasScreen = ({ navigation }) => {
     newSocket.on('connect', () => {
       console.log('Connected to Python server', SERVER_URL);
       Alert.alert('Connection', 'Connected to Python server.\nIp: ' + SERVER_URL + '.');
+
+      const datos = {
+        mensaje: 'conexionSatisfactoria',
+      };
+
+      newSocket.emit('conexionAppSecadorasRot', datos);
     });
 
     newSocket.on('message', (msg) => {
@@ -41,6 +49,38 @@ const CalibracionSecadorasScreen = ({ navigation }) => {
 
     newSocket.on('disconnect', () => {
       console.log('Disconnected from server');
+    });
+
+    newSocket.on('calibracionConfirmacionSecadorasApp', () => {
+      console.log('confirmacion de establecimiento de cero');
+      alert('Calibración correcta');
+    });
+
+    newSocket.on('conexionAppSecadorasRotDev', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
+    });
+
+    // Se lee el mensaje de conexion
+    newSocket.on('eventoConexionEspSecadorasRot', (data) => {
+      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
+        console.log('Datos recibidos:', data);
+        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
+        console.log('Dato habilitar:', data.habilitar); // Log the value directly
+        if (data.habilitar === "True") {
+          setButtonEnabled(true); // Now it will work
+        } else {
+          setButtonEnabled(false); // Now it will work
+        }
+      }
     });
 
     setSocket(newSocket);
@@ -68,10 +108,9 @@ const CalibracionSecadorasScreen = ({ navigation }) => {
 
   const sendMessageEstablecerCero = () => {
     const datos = {
-      gradosCalibrar: 0,
       sentido: 'EstablcerCero',
     };
-    socket.emit('datosfromCalibrarSecadoras', datos);
+    socket.emit('datosfromCalibrarSecadorasConfirmar', datos);
   };
 
   const recibirDatos = () => {
@@ -129,7 +168,10 @@ const CalibracionSecadorasScreen = ({ navigation }) => {
 
       {/* Button to center */}
       <View style={styles.centerButtonContainer}>
-        <Button title="Establecer cero" color="#FFD700" onPress={sendMessageEstablecerCero} />
+        <Button title="Establecer cero" 
+          color="#FFD700"
+          disabled={!buttonEnabled} 
+          onPress={sendMessageEstablecerCero} />
       </View>
     </ScrollView>
   );
