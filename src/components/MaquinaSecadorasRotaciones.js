@@ -6,7 +6,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { ProgressChart } from 'react-native-chart-kit';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.130:5000';
+const SERVER_URL = 'http://192.168.0.101:5000';
 
 const InfoCard = ({ title, value }) => (
   <View style={styles.cardWrapper}>
@@ -181,7 +181,8 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
         source={require('../../assets/Maquina2.png')}
         style={styles.image}
       />
-
+  
+  
       <View style={styles.containerCards}>
         <InfoCard title="Corriente (A)" value= {conteo_revSecadorasRot.toString()} />
         <InfoCard title="Estado" value={estado_pruebaSecadorasRot.toString()} />

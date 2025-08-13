@@ -102,6 +102,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
           setEstadoSSR(data.estado_ssr);
           setTiempoTranscurrido(parseFloat((data.tiempo_transcurrido / 60000).toFixed(4)));
 
+          /*
           setConexionEspCalentamiento(data.habilitar); // Store in state
           console.log('Dato habilitar:', data.habilitar); // Log the value directly
           if (data.habilitar === "True") {
@@ -109,10 +110,11 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
           } else {
             setButtonEnabled(false); // Now it will work
           }
-
+          */
         }
       });
   
+      /*
       newSocket.on('conexionAppCalentamiento', (data) => {
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         console.log('Datos recibidos:', data);
@@ -125,7 +127,9 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
         }
       }
     });
-
+    */
+    
+    /*
     newSocket.on('eventoConexionEspCalentamiento', (data) => {
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         console.log('Datos recibidos:', data);
@@ -138,6 +142,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
         }
       }
     });
+    */
   
       setSocket(newSocket);
   
@@ -264,7 +269,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
           <Button title="Enviar Datos" 
           color="#FFD700" 
           onPress={sendMessage}
-          disabled={!buttonEnabled} />
+          /*disabled={!buttonEnabled} *//>
         </View>
       </View>
       <View style={styles.buttonContainer}>
@@ -272,13 +277,13 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
           <Button title="Resetear Valores" 
           color="#FF6347" 
           onPress={resetValues}
-          disabled={!buttonEnabled} />
+          /*disabled={!buttonEnabled} *//>
         </View>
         <View style={styles.button}>
           <Button title="Pausar ciclo" 
           color="#FF6347" 
           onPress={resetValues}
-          disabled={!buttonEnabled} />
+          /*disabled={!buttonEnabled} *//>
         </View>
       </View>
     </ScrollView>

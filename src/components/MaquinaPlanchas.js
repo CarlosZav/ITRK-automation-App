@@ -7,7 +7,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar
 import Constants from "expo-constants";
 
 const SERVER_URL = __DEV__
-  ? 'http://192.168.0.101:5000' // Cambia a tu IP local
+  ? 'http://192.168.0.101' // Cambia a tu IP local 192.168.0.101
   : 'http://192.168.0.101:5000'; // Cambia a una IP fija o dominio público
 
 const MaquinaPlanchasScreen = ({ navigation }) => {
@@ -193,10 +193,9 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginLeft: 110,
-    marginTop: -50,
+    marginTop: 50,
     marginBotton: 100,
-    alignItems: 'center',
+    alignSelf: 'center',
   },
 
   helpIcon: {
@@ -220,12 +219,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 10,
   },
+  
+
   buttonContainer: {
-    alignItems: 'center',
-    marginTop: 10,
-    borderRadius: 5,
-    marginBottom: 10,
-  },
+  width: '60%', // percentage of parent width
+  alignSelf: 'center',
+  marginTop: 10,
+  marginBottom: 10,
+},
 
   input: {
     height: 40,

@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 
-const SERVER_URL = 'http://10.224.55.130:5000'; // 192.168.0.101
+const SERVER_URL = 'http://192.168.0.101:5000'; // 192.168.0.101
 
 const CalibracionSecadorasScreen = ({ navigation }) => {
   const [gradosCalibrar, setGradosCalibrar] = useState('');
@@ -181,10 +181,9 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginLeft: 150,
     marginTop: 60,
     marginBottom: 40,
-    alignItems: 'center',
+    alignSelf: 'center',
   },
 
   helpIcon: {

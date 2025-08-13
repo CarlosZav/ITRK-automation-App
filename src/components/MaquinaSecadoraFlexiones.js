@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar
 import { ScrollView } from 'react-native-gesture-handler';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.130:5000';
+const SERVER_URL = 'http://192.168.0.101:5000';
 
 const InfoCard = ({ title, value }) => (
   <View style={styles.cardWrapper}>
@@ -86,6 +86,7 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
         setConteoFlexSecadoras(data.conteoFlexSecadoras);
         setEstadoSecadorasFlex(data.estadoSecadorasFlex);
         setVelocidadFlexiones(data.velocidadFlexiones);
+        setSetFlexionesSecadoras(data.setConteoFlexSecadoras);
         setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
 
         setConexionEspSecadorasRotacion(data.habilitar); // Store in state
@@ -316,20 +317,20 @@ const MaquinaSecadorasFlexionesScreen = ({ navigation }) => {
         <Button 
         title="Iniciar nueva prueba" 
         color="#FFD700"
-        disabled={!buttonEnabled}
+        /*disabled={!buttonEnabled}*/
         onPress={sendMessage} />
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Pausar prueba" 
         color="#FFD700" 
         onPress={sendMessage_pausar}
-        disabled={!buttonEnabled} />
+        /*disabled={!buttonEnabled} *//>
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Reanudar prueba" 
         color="#FFD700" 
         onPress={sendMessage_reanudar}
-        disabled={!buttonEnabled} />
+        /*disabled={!buttonEnabled}*/ />
       </View> 
     </ScrollView>
   );

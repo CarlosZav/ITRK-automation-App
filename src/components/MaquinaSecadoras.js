@@ -70,16 +70,16 @@ const styles = StyleSheet.create({
   },
   
   image: {
-    width: 100,
-    height: 100,
-    marginLeft: 50,
+    width: 120,
+    height: 120,
     marginTop: 50,
     marginBottom: 10,
-    alignItems: 'center',
+    alignSelf: 'center',
   },
   menuContainer: {
     flex: 1,
     padding: 20,
+    alignSelf: 'cener'
   },
   menuItem: {
     backgroundColor: '#FFD700', // Fondo amarillo
@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     width: 300,
     marginVertical: 10,
     alignItems: 'center',
+    alignSelf: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
   },

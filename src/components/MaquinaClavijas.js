@@ -6,7 +6,7 @@ import { io } from "socket.io-client";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import DropDownPicker from 'react-native-dropdown-picker';
 
-const SERVER_URL = 'http://10.224.55.98:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
+const SERVER_URL = 'http://192.168.0.101:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
 //const ServerURL = "192.168.137.19";
 
 const InfoCard = ({ title, value }) => (

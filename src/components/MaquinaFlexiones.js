@@ -5,7 +5,7 @@ import Slider from '@react-native-community/slider';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://10.224.55.98:5000'; // 192.168.0.101
+const SERVER_URL = 'http://192.168.0.101:5000'; // 192.168.0.101
 
 const MaquinaFlexionesScreen = ({ navigation }) => {
 
@@ -26,7 +26,8 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
   const [conexionEspSecadorasRotacion, setConexionEspSecadorasRotacion] = useState('');
   const [buttonEnabled, setButtonEnabled] = useState(false); // Initially disabled
 
-  const [setRevolucionesSecadoras, setSetRevolucionesSecadoras] = useState('0');
+  const [setCiclosF, setSetCiclosF] = useState('0');
+  const [velocidad_SecadorasRot, setVelocidad_SecadorasRot] = useState(0);
 
 
   //Timer
@@ -70,6 +71,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         setVelocidadFlexiones(data.velocidadFlexiones);
         setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
 
+        /*
         setConexionEspSecadorasRotacion(data.habilitar); // Store in state
         console.log('Dato habilitar:', data.habilitar); // Log the value directly
         if (data.habilitar === "True") {
@@ -77,10 +79,12 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         } else {
           setButtonEnabled(false); // Now it will work
         }
+        */
       }
     });
 
     // Se lee el mensaje de conexion
+    /*
     newSocket.on('eventoConexionEspSecadorasRot', (data) => {
       if (data && typeof data === 'object' && Object.keys(data).length > 0) {
         console.log('Datos recibidos:', data);
@@ -93,6 +97,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         }
       }
     });
+    */
 
     setSocket(newSocket);
 
@@ -145,6 +150,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         console.log('Estado de la prueba: ', estado_pruebaFlex);
         console.log('Tiempo transcurrido (min): ', tiempo_transcurridoFlex);
 
+        /*
         setConexionEspSecadorasRotacion(data.habilitar); // Store in state
         console.log('Dato habilitar:', data.habilitar); // Log the value directly
         if (data.habilitar === "True") {
@@ -152,6 +158,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         } else {
           setButtonEnabled(false); // Now it will work
         }
+        */
   
         Alert.alert(
           'Datos recibidos',
@@ -187,11 +194,11 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
       setValue(currentValue - 5);
     }
   };
-
+  /*
   const fillValueForProgress = setRevolucionesSecadoras !== '0' && !isNaN(parseFloat(setRevolucionesSecadoras))
     ? (conteo_revSecadorasRot * 100) / parseFloat(setRevolucionesSecadoras)
     : 0;
-
+  */
   return (
     <ScrollView style={styles.container}>
 
@@ -201,10 +208,10 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
       />
 
       
-
+      {/*
       <View style={styles.cardContainerCircular} title="Flexiones">
       
-          <Text style={styles.cardTitle}>Progreso de Rotaciones</Text>
+          <Text style={styles.cardTitle}>Progreso de Flexiones</Text>
         <AnimatedCircularProgress
           size={200}
           width={15}
@@ -221,6 +228,7 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         </AnimatedCircularProgress>
 
       </View>
+      */}
 
       <TouchableOpacity
         style={styles.helpIcon}
@@ -334,10 +342,9 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginLeft: 150,
     marginTop: 20,
     marginBottom: 20,
-    alignItems: 'center',
+    alignSelf: 'center',
   },
 
   helpIcon: {
