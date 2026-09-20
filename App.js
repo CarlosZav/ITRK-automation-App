@@ -14,9 +14,18 @@ import ConfigScreen from './src/components/ConfigScreen';
 import HelpFlexionesScreen from './src/components/HelpFlexionesScreen';
 import HelpCalentamientoScreen from './src/components/HelpCalentamientoScreen';
 import HelpPlanchasScreen from './src/components/HelpPlanchasScreen';
+import MaquinaLavadorasCiclos from './src/components/MaquinaLavadorasCiclos';
+import MaquinaLavadorasFuerzaScreen from './src/components/MaquinaLavadorasFuerza.js';
+import MaquinaLavadorasScreen from './src/components/MaquinaLavadoras.js';
+import CalibracionLavadorasScreen from './src/components/MaquinaLavadorasCalibracion.js';
+import MaquinaHornosCiclos from './src/components/MaquinaMicroondas.js';
+import TemperaturaScreen from './src/components/Temperatura.js';
+
+
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Iconos de configuración
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const Stack = createStackNavigator();
 
@@ -28,12 +37,13 @@ const App = () => {
         screenOptions={({ navigation }) => ({
           headerRight: () => (
             <TouchableOpacity style={{ marginRight: 20 }} onPress={() => navigation.navigate('Home')}>
-              <Icon name="home-lightbulb-outline" size={35} color="#FFD700" />
+              <MaterialCommunityIcons name="home-lightbulb-outline" size={35} color="#FFD700" />
             </TouchableOpacity>
           ),
         })}>
         
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Temperatura Screen" component={TemperaturaScreen} />
         <Stack.Screen name="Maquina calentamiento" component={MaquinaCalentamientoScreen} />
         <Stack.Screen name="Maquina Flexiones" component={MaquinaFlexionesScreen} />
         <Stack.Screen name="Maquina Planchas" component={MaquinaPlanchasScreen} />
@@ -46,6 +56,13 @@ const App = () => {
         <Stack.Screen name="Ayuda Maquina Planchas" component={HelpPlanchasScreen} />
         <Stack.Screen name="Calibracion Maquina Secadoras" component={CalibracionSecadorasScreen} />
         <Stack.Screen name="Maquina Clavijas" component={MaquinaClavijasScreen} />
+        <Stack.Screen name="Maquina Lavadoras" component={MaquinaLavadorasScreen} />
+        <Stack.Screen name="Maquina Lavadoras Ciclos" component={MaquinaLavadorasCiclos} />
+        <Stack.Screen name="Maquina Lavadoras Fuerza" component={MaquinaLavadorasFuerzaScreen} />
+        <Stack.Screen name="Maquina Lavadoras Calibracion" component={CalibracionLavadorasScreen} />
+        <Stack.Screen name="Maquina Microondas" component={MaquinaHornosCiclos} />
+        
+
       </Stack.Navigator>
     </NavigationContainer>
   );

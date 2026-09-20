@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button,StyleSheet, Image, Alert , TextInput, TouchableOpacity, ScrollView} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Button,StyleSheet, Image, Alert , TextInput, TouchableOpacity, ScrollView, Animated, Easing} from 'react-native';
 import { io } from "socket.io-client";
 import Slider from '@react-native-community/slider';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const SERVER_URL = 'http://192.168.0.101:5000'; // 192.168.0.101
 
@@ -29,6 +30,70 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
   const [setCiclosF, setSetCiclosF] = useState('0');
   const [velocidad_SecadorasRot, setVelocidad_SecadorasRot] = useState(0);
 
+  const [expanded, setExpanded] = useState(false);
+  const animationController = useRef(new Animated.Value(0)).current;
+
+  const [secondExpanded, setSecondExpanded] = useState(false);
+  const secondAnimationController = useRef(new Animated.Value(0)).current;
+
+  const [buttonEnabledIniciar, setButtonEnabledIniciar] = useState(false); // Tu estado actual
+  const [isConfigValidated, setIsConfigValidated] = useState(false); // <-- AGREGA ESTA LÍNEA
+
+  const toggleMenu = () => {
+    const config = {
+    toValue: expanded ? 0 : 1,
+    duration: 500,
+    useNativeDriver: false, // Height doesn't support native driver
+    easing: Easing.bezier(0.4, 0, 0.2, 1),
+    };
+
+    Animated.timing(animationController, config).start();
+    setExpanded(!expanded);
+  };
+
+
+  const arrowAngle = animationController.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  const bodyHeight = animationController.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 380], // Adjust 150 to the height of your hidden content
+  });
+
+  const bodyOpacity = animationController.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
+
+  const secondToggleMenu = () => {
+    const config = {
+    toValue: secondExpanded ? 0 : 1,
+    duration: 500,
+    useNativeDriver: false, // Height doesn't support native driver
+    easing: Easing.bezier(0.4, 0, 0.2, 1),
+    };
+
+    Animated.timing(secondAnimationController, config).start();
+    setSecondExpanded(!secondExpanded);
+  };
+
+
+  const secondArrowAngle = secondAnimationController.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '180deg'],
+  });
+
+  const secondBodyHeight = secondAnimationController.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 600], // Adjust 150 to the height of your hidden content
+  });
+
+  const secondBodyOpacity = secondAnimationController.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0, 1],
+  });
 
   //Timer
   useEffect(() => {
@@ -61,44 +126,6 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
     newSocket.on('disconnect', () => {
       console.log('Disconnected from server');
     });
-
-    // Aquí agregas la escucha directa a 'datosServidor'
-    newSocket.on('datosServidorasSecadorasFlex', (data) => {
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        console.log('Datos recibidos:', data);
-        setConteoFlexSecadoras(data.conteoFlexSecadoras);
-        setEstadoSecadorasFlex(data.estadoSecadorasFlex);
-        setVelocidadFlexiones(data.velocidadFlexiones);
-        setTiempoSecadorasFlex(parseFloat((data.tiempoSecadorasFlex / 60).toFixed(4)));
-
-        /*
-        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
-        console.log('Dato habilitar:', data.habilitar); // Log the value directly
-        if (data.habilitar === "True") {
-          setButtonEnabled(true); // Now it will work
-        } else {
-          setButtonEnabled(false); // Now it will work
-        }
-        */
-      }
-    });
-
-    // Se lee el mensaje de conexion
-    /*
-    newSocket.on('eventoConexionEspSecadorasRot', (data) => {
-      if (data && typeof data === 'object' && Object.keys(data).length > 0) {
-        console.log('Datos recibidos:', data);
-        setConexionEspSecadorasRotacion(data.habilitar); // Store in state
-        console.log('Dato habilitar:', data.habilitar); // Log the value directly
-        if (data.habilitar === "True") {
-          setButtonEnabled(true); // Now it will work
-        } else {
-          setButtonEnabled(false); // Now it will work
-        }
-      }
-    });
-    */
-
     setSocket(newSocket);
 
     // Limpia la conexión al desmontar el componente
@@ -170,12 +197,17 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
     });
   
     // Emitir solicitud al servidor
-    socket.emit('recibirDatosServerFlexiones');
+    socket.emit('recibirDatosServerFlexionesOG');
   };
 
   // Función para resetear valores
   const resetValues = () => {
     
+  };
+
+  const configuracionPrevia = () => {
+    setButtonEnabledIniciar(true); // <-- Activamos el botón aquí
+    Alert.alert('Te aseguraste que todo está correcto, ahora puedes iniciar la prueba');
   };
 
   const pausarCiclo = () => {
@@ -207,62 +239,67 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         style={styles.image}
       />
 
-      
-      {/*
-      <View style={styles.cardContainerCircular} title="Flexiones">
-      
-          <Text style={styles.cardTitle}>Progreso de Flexiones</Text>
-        <AnimatedCircularProgress
-          size={200}
-          width={15}
-          fill={fillValueForProgress} // porcentaje de pasos completados
-          tintColor="#FFD700"
-          backgroundColor="#3d5875"
-          duration={1000}
-          >
-          {(fill) => (
-            <Text style={styles.progressText}>
-              {Math.round((fill * parseFloat(setRevolucionesSecadoras)) / 100)} / {Math.round(parseFloat(setRevolucionesSecadoras))}
-            </Text>
-          )}
-        </AnimatedCircularProgress>
-
-      </View>
-      */}
-
       <TouchableOpacity
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="robot-confused" size={30} color="#FFD700" />
+        <MaterialCommunityIcons name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
-            <Text style={styles.title}>CANTIDAD DE CICLOS</Text>
-            <TextInput
-              style={styles.input}
-              value={ciclosF}
-              onChangeText={setCiclos}
-              keyboardType="numeric"
-              placeholder="Ingrese ciclos"
-            />
+      <View style={styles.containerButtonx}>
+        {/* Main Trigger Button */}
+        <TouchableOpacity style={styles.buttonPrime} onPress={toggleMenu} activeOpacity={0.8}>
+            <Text style={styles.buttonTextPrime}>{expanded ? "Configuración previa" : "Mostar configuración previa"}</Text>
+            <Animated.Text style={{ transform: [{ rotate: arrowAngle }], color: 'white' }}>
+            ▼
+            </Animated.Text>
+        </TouchableOpacity>
 
-            {/*<Text style={styles.title}>ÁNGULO DE GIRO 1</Text>
-            <TextInput
-              style={styles.input}
-              value={angulo1}
-              onChangeText={setAngulo1}
-              keyboardType="numeric"
-              placeholder="Ingrese angulo 1"
-            />
+        <Animated.View style={[styles.extraContent, { height: bodyHeight, opacity: bodyOpacity }]}>
+          
+          <Text style={{color: 'black'}}>1. Sigue cada paso con precaución, Antes de iniciar revisa que todo esté bien y alejate del área de movimiento de la máquina</Text>
+          <Text style={{color: 'black'}}> </Text>
+          <Text style={{color: 'black'}}>2. Establece tu punto inicial manualmente</Text>
+          <Text style={{color: 'black'}}> </Text>
+          <Text style={{color: 'black'}}>3. Conecta la maquina para que detecte ese punto inicial</Text>
+          <Text style={{color: 'black'}}> </Text>
+          <Text style={{color: 'black'}}>4. Prende el aire y revisa que la presión indicada en el regulador sea menor o igual a 2 bar</Text>
+          <Text style={{color: 'black'}}> </Text>
+          <Text style={{color: 'black'}}>5. Si todo está bien, alejate y presiona el botón "Correcto"</Text>
+          
+          <View style={styles.buttonRow}>
+            <TouchableOpacity onPress={configuracionPrevia} style={styles.subButton}><Text style = {[{color: 'white', fontWeight: "bold",}]}>Correcto</Text></TouchableOpacity>
+          </View>
+        
+        </Animated.View>
+      </View>
 
-            <Text style={styles.title}>ÁNGULO DE GIRO 2</Text>
-            <TextInput
-              style={styles.input}
-              value={angulo2}
-              onChangeText={setAngulo2}
-              keyboardType="numeric"
-              placeholder="Ingrese angulo 2"
-            />*/}
+      <Text style={styles.title}>CANTIDAD DE CICLOS</Text>
+      <TextInput
+        style={styles.input}
+        value={ciclosF}
+        onChangeText={setCiclos}
+        keyboardType="numeric"
+        placeholder="Ingrese ciclos"
+      />
+
+      {/*<Text style={styles.title}>ÁNGULO DE GIRO 1</Text>
+      <TextInput
+        style={styles.input}
+        value={angulo1}
+        onChangeText={setAngulo1}
+        keyboardType="numeric"
+        placeholder="Ingrese angulo 1"
+      />
+
+      <Text style={styles.title}>ÁNGULO DE GIRO 2</Text>
+      <TextInput
+        style={styles.input}
+        value={angulo2}
+        onChangeText={setAngulo2}
+        keyboardType="numeric"
+        placeholder="Ingrese angulo 2"
+      />*/}
 
       <View style={styles.sliderContainer}>
         <Text style={styles.title}>ÁNGULO SENTIDO HORARIO</Text>
@@ -322,8 +359,17 @@ const MaquinaFlexionesScreen = ({ navigation }) => {
         </View>
       </View>
       
-      <View style={styles.buttonContainer}>
-        <Button title="Iniciar nueva prueba" color="#FFD700" onPress={sendMessage} />
+      <View style={[
+        styles.buttonContainer, 
+        { backgroundColor: buttonEnabledIniciar ? '#FFD700' : '#CCCCCC' } // El contenedor ahora maneja el color de fondo
+      ]}>
+        <TouchableOpacity 
+          onPress={sendMessage} 
+          disabled={!buttonEnabledIniciar}
+          style={styles.customStartButton}
+        >
+          <Text style={styles.customStartButtonText}>Iniciar nueva prueba</Text>
+        </TouchableOpacity>
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Visualizar Datos" color="#FFD700" onPress={recibirDatos} />
@@ -453,24 +499,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', // Texto en negrita
   },
 
-  cardContainerCircular: {
-    backgroundColor: 'white', // Set the background to white
-    borderRadius: 20,        // Optional: Add rounded corners for a softer look
-    padding: 20,             // Optional: Add some padding inside the card
-    marginVertical: 10,       // Optional: Add vertical margin to separate cards
-    marginHorizontal: 0,     // Optional: Add horizontal margin
-    borderColor: '#ccc',       // Set a light gray border color for contrast
-    borderWidth: 1,          // Set the border width
-    alignItems: 'center',     // Center the content horizontally within the card
-    justifyContent: 'center', // Center the content vertically within the card (if needed)
-    // Optional: Add shadow for a lifted effect (platform-specific)
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -482,6 +510,77 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+
+  containerButtonx: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 12,
+    overflow: 'hidden', // Crucial for hiding the retracting content
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    // alignContent: 'center', <-- Esto no afecta al centrado del contenedor en sí
+    alignSelf: 'center',       // <-- AGREGA ESTA LÍNEA PARA CENTRARLO
+    marginBottom: 30
+  },
+
+  buttonPrime: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: 15,
+  backgroundColor: '#FFD700',
+  },
+
+  buttonTextPrime: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  extraContent: {
+    width: '100%',
+    backgroundColor: '#F9F9F9',
+    
+  },
+
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 5,
+  },
+  subButton: {
+    padding: 10,
+    backgroundColor: '#FFD700',
+    borderRadius: 8,
+    alignItems: 'center',
+    flex: 1,
+    margin: 10
+  },
+
+  buttonContainer: {
+    marginTop: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    width: 200,
+    height: 38, // <-- Forzamos la altura para que sea idéntico a los <Button /> nativos de abajo
+    alignSelf: 'center', 
+  },
+
+  customStartButton: {
+    flex: 1, // Se estira para ocupar todo el buttonContainer
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+
+  customStartButtonText: {
+    color: 'white', // En iOS el texto nativo es azul/dorado, pero en Android es blanco. Si usas Android, 'white' mantendrá la simetría perfecta.
+    fontSize: 14,
+    fontWeight: 'bold',
+    textTransform: 'uppercase', // Los botones nativos suelen renderizar en mayúsculas en varias plataformas
   },
   
 });

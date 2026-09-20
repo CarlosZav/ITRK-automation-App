@@ -3,8 +3,9 @@ import { View, VirtualizedList, StatusBar, Text, Button, Modal, StyleSheet, Imag
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import DropDownPicker from 'react-native-dropdown-picker';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const SERVER_URL = 'http://192.168.0.101:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
 //const ServerURL = "192.168.137.19";
@@ -192,7 +193,7 @@ const MaquinaClavijasScreen = ({ navigation }) => {
               style={styles.helpIcon}
               onPress={() => navigation.navigate('Ayuda Maquina Calentamiento')} // Navegar a la pantalla de ayuda
             >
-              <Icon name="robot-confused" size={30} color="#FFD700" />
+              <MaterialCommunityIcons name="robot-confused" size={30} color="#FFD700" />
             </TouchableOpacity>
 
             <Text style={styles.title}>TIEMPO ENCENDIDO</Text>

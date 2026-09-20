@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, Button, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { ScrollView } from 'react-native';
 
 const HomeScreen = ({ navigation }) => {
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       
     {/* Banner */}
     <View style={styles.banner}>
@@ -15,6 +16,11 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Menu Options */}
       <View style={styles.menuContainer}>
+        {/*
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Temperatura Screen')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
+          <Text style={styles.menuText}>Temperatura Horno</Text>
+        </TouchableOpacity>*/}
 
         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina calentamiento')}>
           <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
@@ -36,23 +42,33 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.menuText}>Maquina Secadoras</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Clavijas')}>
+        {/*<TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Clavijas')}>
           <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
           <Text style={styles.menuText}>Maquina Clavijas</Text>
+        </TouchableOpacity>*/}
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Lavadoras')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
+          <Text style={styles.menuText}>Maquina Lavadoras</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Microondas')}>
+          <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
+          <Text style={styles.menuText}>Maquina microondas</Text>
         </TouchableOpacity>
 
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    
-  },
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingBottom: 40, // opcional, para dejar espacio al final
+},
+
  /* image: {
     width: 200,
     height: 200,

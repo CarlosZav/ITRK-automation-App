@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, State, Button, StyleSheet, Image, Dimensions, Alert , TextInput, TouchableOpacity} from 'react-native';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
 import { ScrollView } from 'react-native-gesture-handler';
 import { ProgressChart } from 'react-native-chart-kit';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 const SERVER_URL = 'http://192.168.0.101:5000';
 
@@ -85,6 +86,7 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
         setConteo_revSecadorasRot(data.conteo_revSecadorasRot);
         setEstado_pruebaSecadorasRot(data.estado_pruebaSecadorasRot);
         setVelocidad_SecadorasRot(data.velocidad_SecadorasRot);
+        
         setSetRevolucionesSecadoras(data.setRevSecadorasRot);
         setTiempo_pruebaSecadorasRot(parseFloat((data.tiempo_pruebaSecadorasRot / 60).toFixed(4)));
         console.log('conteo_revSecadorasRot:', data.conteo_revSecadorasRot);
@@ -128,13 +130,17 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
 
   // Mandar datos de seteo de ciclos al presionar el boton iniciar prueba
   const sendMessage = () => {
-    const datos = {
-      revolucionesSecadoras: revolucionesSecadoras,
-      revCambioSecadoras: revCambioSecadoras,
-      velocidadRevoluciones: velocidadRevoluciones,
-      pausarSecadorasRot : 'NO'
-    };
-    socket.emit('datosfromSecadorasRot', datos);
+    if ((revolucionesSecadoras === "") || (revCambioSecadoras === "") || (velocidadRevoluciones === "")){
+      Alert.alert("Introduce todos los datos necesarios");    
+    } else{
+      const datos = {
+        revolucionesSecadoras: revolucionesSecadoras,
+        revCambioSecadoras: revCambioSecadoras,
+        velocidadRevoluciones: velocidadRevoluciones,
+        pausarSecadorasRot : 'NO'
+      };
+      socket.emit('datosfromSecadorasRot', datos);
+    }
   };
 
   const sendMessage_pausar = () => {
@@ -174,7 +180,7 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Flexiones')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="robot-confused" size={30} color="#FFD700" />
+        <MaterialCommunityIcons name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
       <Image
@@ -184,7 +190,7 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
   
   
       <View style={styles.containerCards}>
-        <InfoCard title="Corriente (A)" value= {conteo_revSecadorasRot.toString()} />
+        <InfoCard title="Rotaciones" value= {conteo_revSecadorasRot.toString()} />
         <InfoCard title="Estado" value={estado_pruebaSecadorasRot.toString()} />
         <InfoCard title="Velocidad de flexion (FPM)" value={velocidad_SecadorasRot.toString()} />
         <InfoCard title="Tiempo transcurrido (min)" value={tiempo_pruebaSecadorasRot.toString()} />
@@ -259,19 +265,19 @@ const MaquinaSecadorasRotacionesScreen = ({ navigation }) => {
         <Button title="Iniciar nueva prueba"
          color="#FFD700"  // Gray if disabled
          onPress={sendMessage}
-         disabled={!buttonEnabled} />
+         /*disabled={!buttonEnabled}*/ />
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Pausar prueba" 
         color="#FFD700"
         onPress={sendMessage_pausar}
-        disabled={!buttonEnabled} />
+        /*disabled={!buttonEnabled} *//>
       </View>
       <View style={styles.buttonContainer}>
         <Button title="Reanudar prueba" 
         color="#FFD700"
         onPress={sendMessage_reanudar}
-        disabled={!buttonEnabled} />
+        /*disabled={!buttonEnabled} *//>
       </View> 
     </ScrollView>
   );

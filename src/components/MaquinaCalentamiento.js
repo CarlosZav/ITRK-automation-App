@@ -3,12 +3,12 @@ import { View, VirtualizedList, StatusBar, Text, Button, Modal, StyleSheet, Imag
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 
-const SERVER_URL = 'http://192.168.0.101:5000';  // IPG CON SERVIDOR INTERTEK 192.168.0.101
-//const ServerURL = "192.168.137.19";
+const SERVER_URL = 'http://192.168.0.101:5000';  // IP CON SERVIDOR INTERTEK 192.168.0.101
 
 const InfoCard = ({ title, value }) => (
   <View style={styles.cardWrapper}>
@@ -27,6 +27,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
   const [milliOff, setMilliOff] = useState('');
   //Clock
   const [elapsedTime, setElapsedTime] = useState(0); // in seconds
+  
   //Comunicación WS Envío
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
@@ -157,8 +158,8 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
     let mili_ON = milliOn * 60 * 1000; 
     let mili_OFF = milliOff * 60 * 1000; 
 
-    print('tiempo on : ', mili_ON);
-    print('tiempo off : ', mili_OFF);
+    console.log('tiempo on : ', mili_ON);
+    console.log('tiempo off : ', mili_OFF);
 
     const datos = {
       seteo_ciclos: ciclos,
@@ -170,17 +171,7 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
 
   // Función para resetear valores
   const resetValues = () => {
-    setDay('00');
-    setHour('00');
-    setMinute('00');
-    setSecond('00');
 
-    setDay2('00');
-    setHour2('00');
-    setMinute2('00');
-    setSecond2('00');
-
-    setCiclos('1');
   };
 
   const pausarCiclo = () => {
@@ -188,10 +179,12 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
     Alert.alert('Ciclo pausado');
   };
 
+  /*
    // Calculate the fill value for the circular progress
   const fillValueForProgress = setCiclosCalentamiento !== '0' && !isNaN(parseFloat(setCiclosCalentamiento))
     ? (conteoCiclos * 100) / parseFloat(setCiclosCalentamiento)
     : 0;
+  */
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -204,12 +197,13 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.containerCards}>
-        <InfoCard title="Corriente (A)" value= {sensorValue.toString()} />
-        <InfoCard title="Estado" value={estadoSSR.toString()} />
-        <InfoCard title="Ciclos transcurridos" value={conteoCiclos.toString()} />
-        <InfoCard title="Tiempo de estado (min)" value={tiempoTranscurrido.toString()} />
+        <InfoCard title="Corriente (A)" value={String(sensorValue)} />
+        <InfoCard title="Estado" value={String(estadoSSR)} />
+        <InfoCard title="Ciclos transcurridos" value={String(conteoCiclos)} />
+        <InfoCard title="Tiempo de estado (min)" value={String(tiempoTranscurrido)} />
       </View>
 
+      {/*
       <View style={styles.cardContainerCircular} title="Flexiones">
       
                <Text style={styles.cardTitle}>Progreso de Rotaciones</Text>
@@ -226,15 +220,15 @@ const MaquinaCalentamientoScreen = ({ navigation }) => {
                     {Math.round((fill * parseFloat(setCiclosCalentamiento)) / 100)} / {Math.round(parseFloat(setCiclosCalentamiento))}
                   </Text>
                 )}
-              </AnimatedCircularProgress>
+              </AnimatedCircularProgress> 
       
-            </View>
+            </View> */}
      
       <TouchableOpacity
               style={styles.helpIcon}
               onPress={() => navigation.navigate('Ayuda Maquina Calentamiento')} // Navegar a la pantalla de ayuda
             >
-              <Icon name="robot-confused" size={30} color="#FFD700" />
+              <MaterialCommunityIcons name="robot-confused" size={30} color="#FFD700" />
             </TouchableOpacity>
 
             <Text style={styles.title}>TIEMPO ENCENDIDO</Text>
@@ -387,7 +381,7 @@ const styles = StyleSheet.create({
   cardContainerCircular: {
     backgroundColor: 'white', // Set the background to white
     borderRadius: 20,        // Optional: Add rounded corners for a softer look
-    padding: 20,             // Optional: Add some padding inside the card
+    padding: 20,             // Optional: Add some paddaczaing inside the card
     marginVertical: 10,       // Optional: Add vertical margin to separate cards
     marginHorizontal: 0,     // Optional: Add horizontal margin
     borderColor: '#ccc',       // Set a light gray border color for contrast

@@ -4,7 +4,7 @@ import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 
-const MaquinaSecadorasScreen = ({ navigation }) => {
+const MaquinaLavadorasScreen = ({ navigation }) => {
 
 
   return (
@@ -29,17 +29,17 @@ const MaquinaSecadorasScreen = ({ navigation }) => {
 
         <Text style={styles.title}>SELECCIONA LA FUNCIÓN DESEADA</Text>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Flexiones')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Lavadoras Ciclos')}>
           <Image style={styles.icon} source={require('../../assets/Maquina.png')} />
-          <Text style={styles.menuText}>Función Flexiones</Text>
+          <Text style={styles.menuText}>Función Abre Puertas</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Secadoras Rotaciones')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Lavadoras Fuerza')}>
           <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
-          <Text style={styles.menuText}>Función Rotaciones</Text>
+          <Text style={styles.menuText}>Función Fuerza</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Calibracion Maquina Secadoras')}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Maquina Lavadoras Calibracion')}>
           <Image style={styles.icon} source={require('../../assets/Maquina2.png')} />
           <Text style={styles.menuText}>Calibrar Maquina</Text>
         </TouchableOpacity>
@@ -104,4 +104,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MaquinaSecadorasScreen;
+export default MaquinaLavadorasScreen;

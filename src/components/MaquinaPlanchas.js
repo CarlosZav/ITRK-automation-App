@@ -3,7 +3,8 @@ import { View, Text, Button, StyleSheet, Image, Alert , TextInput, TouchableOpac
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { io } from "socket.io-client";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+//import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importar los iconos
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Constants from "expo-constants";
 
 const SERVER_URL = __DEV__
@@ -139,7 +140,7 @@ const MaquinaPlanchasScreen = ({ navigation }) => {
         style={styles.helpIcon}
         onPress={() => navigation.navigate('Ayuda Maquina Planchas')} // Navegar a la pantalla de ayuda
       >
-        <Icon name="robot-confused" size={30} color="#FFD700" />
+        <MaterialCommunityIcons name="robot-confused" size={30} color="#FFD700" />
       </TouchableOpacity>
 
       <Image
